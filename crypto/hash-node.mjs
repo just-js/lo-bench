@@ -33,11 +33,12 @@ md5_string('hello').forEach((v, i) => assert(v === expected[i]))
 sha256_buffer(hello).forEach((v, i) => assert(v === expectedsha256[i]))
 sha256_string('hello').forEach((v, i) => assert(v === expectedsha256[i]))
 
-const iter = 3
-const runs = 1000000
+const iter = parseInt(args[0] || '3', 10)
+const runs = parseInt(args[1] || '1000000', 10)
+let total = parseInt(args[2] || '1', 10)
 const bench = new Bench()
 
-while (1) {
+while (total--) {
 
 {
   for (let i = 0; i < iter; i++) {

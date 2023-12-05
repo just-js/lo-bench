@@ -1,5 +1,6 @@
 import { Bench } from './lib/bench.mjs'
 import { Hash } from "https://deno.land/x/checksum@1.2.0/mod.ts";
+import { sha256 } from "https://denopkg.com/chiefbiiko/sha256@v1.0.0/mod.ts";
 
 const encoder = new TextEncoder()
 const hello = encoder.encode('hello')
@@ -13,7 +14,6 @@ const expectedsha256 = [
 ]
 
 const md5 = new Hash('md5')
-const sha256_hash = data => crypto.subtle.digest("SHA-256", data)
 
 function md5_digest_string (str) {
   return md5.digest(encoder.encode(str)).data
@@ -39,13 +39,14 @@ let u8 = await sha256_hash_string('hello')
 u8.forEach((v, i) => assert(v === expectedsha256[i]))
 u8 = await sha256_hash_buffer(hello)
 u8.forEach((v, i) => assert(v === expectedsha256[i]))
+sha256('hello').forEach((v, i) => assert(v === expectedsha256[i]))
 
-const iter = 3
-const runs = 1000000
+const iter = parseInt(args[0] || '3', 10)
+const runs = parseInt(args[1] || '1000000', 10)
+let total = parseInt(args[2] || '1', 10)
 const bench = new Bench()
 
-while (1) {
-/*
+while (total--) {
 {
   for (let i = 0; i < iter; i++) {
     bench.start('md5-string')
@@ -65,7 +66,7 @@ while (1) {
     bench.end(runs)
   }
 }
-*/
+
 {
   for (let i = 0; i < iter; i++) {
     bench.start('sha256-string')
@@ -75,7 +76,7 @@ while (1) {
     bench.end(runs)
   }
 }
-/*
+
 {
   for (let i = 0; i < iter; i++) {
     bench.start('sha256-buffer')
@@ -85,5 +86,14 @@ while (1) {
     bench.end(runs)
   }
 }
-*/
+
+{
+  for (let i = 0; i < iter; i++) {
+    bench.start('sha256-string-js')
+    for (let j = 0; j < runs; j++) {
+      await sha256('hello')
+    }
+    bench.end(runs)
+  }
+}
 }

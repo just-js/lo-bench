@@ -1,5 +1,8 @@
-import { Bench } from './lib/bench.mjs'
+import { Bench } from 'crypto/lib/bench.mjs'
+import { Digest } from 'lib/hash.js'
 
+const md5 = new Digest('md5')
+const sha256 = new Digest('sha256')
 const encoder = new TextEncoder()
 const hello = encoder.encode('hello')
 
@@ -11,10 +14,10 @@ const expectedsha256 = [
   22, 30, 92, 31, 167, 66, 94, 115, 4, 51, 98, 147, 139, 152, 36 
 ]
 
-Bun.MD5.hash(hello).forEach((v, i) => assert(v === expected[i]))
-Bun.SHA256.hash(hello).forEach((v, i) => assert(v === expectedsha256[i]))
-Bun.MD5.hash('hello').forEach((v, i) => assert(v === expected[i]))
-Bun.SHA256.hash('hello').forEach((v, i) => assert(v === expectedsha256[i]))
+md5.hash_string('hello').forEach((v, i) => assert(v === expected[i]))
+md5.hash(hello).forEach((v, i) => assert(v === expected[i]))
+sha256.hash_string('hello').forEach((v, i) => assert(v === expectedsha256[i]))
+sha256.hash(hello).forEach((v, i) => assert(v === expectedsha256[i]))
 
 const iter = parseInt(args[0] || '3', 10)
 const runs = parseInt(args[1] || '1000000', 10)
@@ -24,48 +27,40 @@ const bench = new Bench()
 while (total--) {
 
 {
-  const { hash } = Bun.MD5
-
   for (let i = 0; i < iter; i++) {
     bench.start('md5-string')
     for (let j = 0; j < runs; j++) {
-      hash('hello')
+      md5.hash_string('hello')
     }
     bench.end(runs)
   }
 }
 
 {
-  const { hash } = Bun.MD5
-
   for (let i = 0; i < iter; i++) {
     bench.start('md5-buffer')
     for (let j = 0; j < runs; j++) {
-      hash(hello)
+      md5.hash(hello)
     }
     bench.end(runs)
   }
 }
 
 {
-  const { hash } = Bun.SHA256
-
   for (let i = 0; i < iter; i++) {
     bench.start('sha256-string')
     for (let j = 0; j < runs; j++) {
-      hash('hello')
+      sha256.hash_string('hello')
     }
     bench.end(runs)
   }
 }
 
 {
-  const { hash } = Bun.SHA256
-
   for (let i = 0; i < iter; i++) {
     bench.start('sha256-buffer')
     for (let j = 0; j < runs; j++) {
-      hash(hello)
+      sha256.hash(hello)
     }
     bench.end(runs)
   }
