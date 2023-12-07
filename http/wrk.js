@@ -83,7 +83,7 @@ const timer = new Timer(eventLoop, 1000, () => {
   stats.rps = 0
 })
 
-const nclient = 64
+const nclient = parseInt(lo.args[2] || '64', 10)
 
 for (let i = 0; i < nclient; i++) client()
 
