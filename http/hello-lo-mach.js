@@ -4,13 +4,15 @@ const le = (() => {
   return new Int16Array(buffer)[0] === 256;
 })();
 
+import { RequestParser } from 'lib/pico.js'
 import { net } from 'lib/net.js'
-const { socket, setsockopt, bind, listen, accept, recv, send, close } = net
+
+const { socket, bind, listen, accept, recv, send_string, close, EAGAIN } = net
 
 const { mach } = lo.load('mach')
 const { system } = lo.load('system')
 
-const { assert, ptr } = lo
+const { assert, ptr, utf8Length } = lo
 const { kqueue, kevent } = mach
 
 const decoder = new TextDecoder()
@@ -28,15 +30,15 @@ function wrapStrError () {
 wrapStrError()
 
 function ev_set(ident, filter, flags, fflags, data, udata) {
-  const buf = new ArrayBuffer(32);
-  const w = new DataView(buf);
-  w.setBigUint64(0, BigInt(ident), le);
-  w.setInt16(8, filter, le);
-  w.setUint16(10, flags, le);
-  w.setUint32(12, fflags, le);
-  w.setBigUint64(16, BigInt(data), le);
-  w.setBigUint64(24, BigInt(udata), le);
-  return ptr(new Uint8Array(buf));
+  const buf = new ArrayBuffer(32)
+  const w = new DataView(buf)
+  w.setBigUint64(0, BigInt(ident), true)
+  w.setInt16(8, filter, true)
+  w.setUint16(10, flags, true)
+  w.setUint32(12, fflags, true)
+  w.setBigUint64(16, BigInt(data), true)
+  w.setBigUint64(24, BigInt(udata), true)
+  return ptr(new Uint8Array(buf))
 }
 
 const kq = kqueue()
@@ -88,13 +90,13 @@ const AF_INET = 2;
 const SOCK_STREAM = 1;
 const O_NONBLOCK = 2048;
 
-const buf = new ArrayBuffer(bufSize);
-const u8 = new Uint8Array(buf);
-
 const { sockaddr_in } = net.types
 
-const res = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-const resUi8 = new Uint8Array(res.split("").map((x) => x.charCodeAt(0)));
+function status_line (status = 200, message = 'OK') {
+  return `HTTP/1.1 ${status} ${message}\r\n`
+}
+let preamble_text = `content-type: text/plain;charset=utf-8\r\nDate: ${(new Date()).toUTCString()}\r\n`
+
 
 function connect(addr, port) {
   const sfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -104,18 +106,27 @@ function connect(addr, port) {
   register(sfd, (event) => {
     if (event & EPOLLERR || event & EPOLLHUP) {
       close(sfd)
+      return
     }
     const newfd = accept(sfd, 0, 0, O_NONBLOCK);
     register(newfd, (event) => {
       if (event & EPOLLERR || event & EPOLLHUP) {
         close(newfd)
+        return
       }
+      const parser = new RequestParser(new Uint8Array(bufSize))
       handles[newfd] = () => {
-        const bytes = recv(newfd, u8, bufSize, 0);
+        const bytes = recv(newfd, parser.rb, bufSize, 0);
         if (bytes > 0) {
-          send(newfd, resUi8, resUi8.length, 0);
-          return;
+          const parsed = parser.parse(bytes)
+          if (parsed > 0) {
+            const text = 'Hello, World!'
+            const written = send_string(newfd, `${status_line()}${preamble_text}Content-Length: ${utf8Length(text)}\r\n\r\n${text}`)
+            return
+          }
+          if (parsed === -2) return
         }
+        if (bytes < 0 && lo.errno === EAGAIN) return
         close(newfd);
       };
     });
