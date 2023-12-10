@@ -9,11 +9,11 @@ import { net } from 'lib/net.js'
 
 const { socket, bind, listen, accept, recv, send_string, close, EAGAIN } = net
 
-const { mach } = lo.load('mach')
+const { machkq } = lo.load('machkq')
 const { system } = lo.load('system')
 
 const { assert, ptr, utf8Length } = lo
-const { kqueue, kevent } = mach
+const { kqueue, kevent } = machkq
 
 const decoder = new TextDecoder()
 
