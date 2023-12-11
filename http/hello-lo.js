@@ -8,9 +8,10 @@ const { assert, utf8Length, core } = lo
 const { fcntl, O_NONBLOCK, F_SETFL } = core
 const { 
   socket, bind, listen, accept, recv, send_string, close, setsockopt, 
-  EAGAIN, SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, on, SOL_SOCKET
+  SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, on, SOL_SOCKET
 } = net
 const { sockaddr_in } = net.types
+const { Blocked } = Loop
 
 function status_line (status = 200, message = 'OK') {
   return `HTTP/1.1 ${status} ${message}\r\n`
@@ -34,7 +35,7 @@ function onSocketEvent (fd) {
     }
     if (parsed === -2) return
   }
-  if (bytes < 0 && lo.errno === EAGAIN) return
+  if (bytes < 0 && lo.errno === Blocked) return
   loop.remove(fd)
   sockets.delete(fd)
   close(fd)
@@ -50,7 +51,7 @@ function onConnect (sfd) {
     stats.conn++
     return
   }
-  if (lo.errno === EAGAIN) return
+  if (lo.errno === Blocked) return
   close(fd)
 }
 
@@ -82,6 +83,6 @@ const loop = new Loop()
 const BUFSIZE = 16384
 let plaintext = `Content-Type: text/plain;charset=utf-8\r\nDate: ${(new Date()).toUTCString()}\r\n`
 const timer = new Timer(loop, 1000, on_timer)
-start('127.0.0.1', 3001)
+start('127.0.0.1', 3000)
 while (loop.poll() >= 0) {}
 timer.close()
