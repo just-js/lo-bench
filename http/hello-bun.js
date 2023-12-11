@@ -1,5 +1,5 @@
 Bun.serve({
-  fetch (s) {
+  fetch () {
     stats.rps++
     return new Response('Hello, World!') 
   },
