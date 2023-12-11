@@ -4,11 +4,11 @@ import { Timer } from 'lib/timer.js'
 import { RequestParser } from 'lib/pico.js'
 import { mem } from 'lib/proc.js'
 
-const { assert, utf8Length } = lo
-const {
-  socket, setsockopt, bind, listen, close, accept4, send_string, recv, on,
-  EAGAIN, SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, SOL_SOCKET, 
-  SOCK_NONBLOCK, SOCKADDR_LEN
+const { assert, utf8Length, core } = lo
+const { fcntl, O_NONBLOCK, F_SETFL } = core
+const { 
+  socket, bind, listen, accept, recv, send_string, close, setsockopt, 
+  EAGAIN, SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, on, SOL_SOCKET
 } = net
 const { sockaddr_in } = net.types
 
@@ -42,8 +42,9 @@ function onSocketEvent (fd) {
 }
 
 function onConnect (sfd) {
-  const fd = accept4(sfd, 0, 0, SOCK_NONBLOCK)
+  const fd = accept(sfd, 0, 0)
   if (fd > 0) {
+    assert(fcntl(fd, F_SETFL, O_NONBLOCK) === 0)
     sockets.set(fd, create_socket(fd))
     loop.add(fd, onSocketEvent, Loop.Readable, on_socket_error)
     stats.conn++
@@ -62,16 +63,17 @@ function create_socket (fd) {
 function on_timer () {
   console.log(`rps ${stats.rps} rss ${mem()} conn ${stats.conn} sockets ${sockets.size}`)
   stats.rps = 0
-  plaintext = `content-type: text/plain;charset=utf-8\r\nDate: ${(new Date()).toUTCString()}\r\n`
+  plaintext = `Content-Type: text/plain;charset=utf-8\r\nDate: ${(new Date()).toUTCString()}\r\n`
 }
 
 function start (addr, port) {
-  const fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)
+  const fd = socket(AF_INET, SOCK_STREAM, 0)
   assert(fd > 2)
+  assert(fcntl(fd, F_SETFL, O_NONBLOCK) === 0)
   assert(!setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, on, 32))
-  assert(!bind(fd, sockaddr_in(addr, port), SOCKADDR_LEN))
-  assert(!listen(fd, SOMAXCONN))
-  assert(!loop.add(fd, onConnect))
+  assert(bind(fd, sockaddr_in(addr, port), 16) === 0)
+  assert(listen(fd, SOMAXCONN) === 0)
+  loop.add(fd, onConnect)
 }
 
 const stats = { rps: 0, conn: 0 }
@@ -80,6 +82,6 @@ const loop = new Loop()
 const BUFSIZE = 16384
 let plaintext = `Content-Type: text/plain;charset=utf-8\r\nDate: ${(new Date()).toUTCString()}\r\n`
 const timer = new Timer(loop, 1000, on_timer)
-start('127.0.0.1', 3000)
+start('127.0.0.1', 3001)
 while (loop.poll() >= 0) {}
 timer.close()
