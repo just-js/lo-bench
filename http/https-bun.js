@@ -1,9 +1,11 @@
 Bun.serve({
-  fetch (s) {
+  fetch () {
     stats.rps++
     return new Response('Hello, World!') 
   },
-  port: 3000
+  port: 3000,
+  certFile: './cert.pem',
+  keyFile: './key.pem'
 })
 
 const stats = { rps: 0 }
