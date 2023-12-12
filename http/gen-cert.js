@@ -2,16 +2,21 @@ import { dump } from 'lib/binary.js'
 import { api } from 'lib/libssl/api.js'
 
 const { libssl } = lo.load('libssl')
+//const libssl = lo.load('boringssl').boringssl
 
-const { wrap, assert, ptr, addr, core, cstr } = lo
+const { wrap, assert, ptr, addr, core, cstr, colors } = lo
+const { AY, AD } = colors
 const { writeFile } = core
 
 const handle = new Uint32Array(2)
 
 for (const name of Object.keys(api)) {
   const def = api[name]
-  if (def.result === 'pointer' || def.result === 'u64') {
-    libssl[name] = wrap(handle, libssl[name], def.parameters.length)
+  if (!libssl[name]) continue
+  if (!def.platform || def.platform.includes(core.os)) {
+    if (def.result === 'pointer' || def.result === 'u64') {
+      libssl[name] = wrap(handle, libssl[name], def.parameters.length)
+    }
   }
 }
 
@@ -28,8 +33,11 @@ const {
 function create_keypair (bits = 2048) {
   const key_ctx = assert(EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, 0))
   assert(EVP_PKEY_keygen_init(key_ctx) === 1)
-  assert(RSA_pkey_ctx_ctrl(key_ctx, EVP_PKEY_OP_KEYGEN, 
-    EVP_PKEY_CTRL_RSA_KEYGEN_BITS, bits, 0) > 0)
+  // these are not available in boringssl, so we just use defaults i guess?
+  if (RSA_pkey_ctx_ctrl) {
+    assert(RSA_pkey_ctx_ctrl(key_ctx, EVP_PKEY_OP_KEYGEN, 
+      EVP_PKEY_CTRL_RSA_KEYGEN_BITS, bits, 0) > 0)
+  }
   const key = ptr(new Uint32Array(2))
   // generate key
   assert(EVP_PKEY_keygen(key_ctx, key.ptr) === 1)
@@ -113,9 +121,12 @@ const { x509 } = generate_cert(key_ptr, {
   hostname: 'home.billywhizz.io'
 })
 
-//console.log(dump(pubkey))
-//console.log(dump(privkey))
-//console.log(dump(x509))
+console.log(`${AY}public key${AD}`)
+console.log(dump(pubkey))
+console.log(`${AY}private key${AD}`)
+console.log(dump(privkey))
+console.log(`${AY}x509 cert${AD}`)
+console.log(dump(x509))
 
 writeFile('cert.pem', x509)
 writeFile('key.pem', privkey)

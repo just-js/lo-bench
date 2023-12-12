@@ -5,6 +5,7 @@ import { RequestParser } from 'lib/pico.js'
 import { mem } from 'lib/proc.js'
 
 const { libssl } = lo.load('libssl')
+//const libssl = lo.load('boringssl').boringssl
 
 const { assert, utf8Length, wrap, cstr, core } = lo
 const { fcntl, O_NONBLOCK, F_SETFL } = core
@@ -12,7 +13,7 @@ const { socket, bind, listen, accept, close, setsockopt } = net
 const { sockaddr_in } = net.types
 const { Blocked } = Loop
 const { 
-  SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, SOL_SOCKET, SOCKADDR_LEN
+  SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, SOL_SOCKET
 } = net
 const {
   SSL_OP_ALL, SSL_OP_NO_RENEGOTIATION, SSL_OP_NO_SSLv3, SSL_OP_NO_TLSv1, 
@@ -44,9 +45,7 @@ function status_line (status = 200, message = 'OK') {
 function close_socket (socket) {
   if (!socket) return
   const { fd, ssl } = socket
-  if (ssl > 0) {
-    SSL_free(ssl)
-  }
+  if (ssl > 0) SSL_free(ssl)
   if (fd > 0) {
     loop.remove(fd)
     sockets.delete(fd)
@@ -58,23 +57,23 @@ function close_socket (socket) {
 }
 
 function on_socket_event (fd) {
+  if (!sockets.has(fd)) throw new Error('foo')
   const socket = sockets.get(fd)
   const { parser, ssl, state } = socket
   if (state === INSECURE) {
     const rc = SSL_accept(ssl)
     if (rc === 1) {
       socket.state = SECURE
-    }
-    if (rc === 0) {
+    } else if (rc === 0) {
+      close_socket(socket)
+      return
+    } else {
+      const err = SSL_get_error(ssl, rc)
+      if (err === libssl.SSL_ERROR_WANT_READ || 
+        err === libssl.SSL_ERROR_WANT_WRITE) return
       close_socket(socket)
       return
     }
-    if (rc === -1) {
-      const err = SSL_get_error(ssl, rc)
-      if (err === libssl.SSL_ERROR_WANT_READ) return
-      if (err === libssl.SSL_ERROR_WANT_WRITE) return
-    }
-    return
   }
   const bytes = SSL_read(ssl, parser.rb.ptr, BUFSIZE)
   if (bytes > 0) {
@@ -82,14 +81,29 @@ function on_socket_event (fd) {
     if (parsed > 0) {
       const text = 'Hello, World!'
       const payload = `${status_line()}${plaintext}Content-Length: ${utf8Length(text)}\r\n\r\n${text}`
-      SSL_write_string(ssl, payload, utf8Length(payload)) 
-      stats.rps++
+      const written = SSL_write_string(ssl, payload)
+      if (written > 0) {
+        stats.rps++
+        return
+      }
+    }
+    if (parsed === -2) {
+      // todo: use offset
       return
     }
-    if (parsed === -2) return
   }
   if (bytes < 0 && lo.errno === Blocked) return
   close_socket(socket)
+}
+
+function create_secure_socket (fd) {
+  const ssl = assert(SSL_new(ctx))
+  assert(SSL_set_fd(ssl, fd) === 1)
+  SSL_set_accept_state(ssl)
+  const buf = new Uint8Array(BUFSIZE)
+  return {
+    parser: new RequestParser(buf), fd, ssl, state: INSECURE
+  }
 }
 
 function on_socket_error (fd) {
@@ -100,7 +114,7 @@ function on_socket_connect (sfd) {
   const fd = accept(sfd, 0, 0)
   if (fd > 0) {
     sockets.set(fd, create_secure_socket(fd))
-    loop.add(fd, on_socket_event, Loop.Readable | Loop.EdgeTriggered, on_socket_error)
+    assert(loop.add(fd, on_socket_event, Loop.Readable, on_socket_error) === 0)
     stats.conn++
     return
   }
@@ -108,14 +122,15 @@ function on_socket_connect (sfd) {
   close(fd)
 }
 
-function create_secure_socket (fd) {
-  const ssl = assert(SSL_new(ctx))
-  SSL_set_fd(ssl, fd)
-  SSL_set_accept_state(ssl)
-  const buf = new Uint8Array(BUFSIZE)
-  return {
-    parser: new RequestParser(buf), fd, ssl, state: INSECURE
-  }
+function start_server (addr, port) {
+  const fd = socket(AF_INET, SOCK_STREAM, 0)
+  assert(fd > 2)
+  assert(fcntl(fd, F_SETFL, O_NONBLOCK) === 0)
+  assert(!setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, net.on, 32))
+  assert(bind(fd, sockaddr_in(addr, port), 16) === 0)
+  assert(listen(fd, SOMAXCONN) === 0)
+  assert(loop.add(fd, on_socket_connect) === 0)
+  return fd
 }
 
 let plaintext = ''
@@ -128,19 +143,11 @@ const SSL_CTX_new = wrap(handle, libssl.SSL_CTX_new, 1)
 const SSL_new = wrap(handle, libssl.SSL_new, 1)
 const INSECURE = 0
 const SECURE = 1
-const BUFSIZE = 16384
-const address = '127.0.0.1'
-const port = 3000
+const BUFSIZE = 65536
 const sockets = new Map()
-const fd = socket(AF_INET, SOCK_STREAM, 0)
-assert(fd > 2)
-assert(fcntl(fd, F_SETFL, O_NONBLOCK) === 0)
-assert(!setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, net.on, 32))
-assert(!bind(fd, sockaddr_in(address, port), SOCKADDR_LEN))
-update_headers()
-assert(!listen(fd, SOMAXCONN))
 const loop = new Loop()
-assert(!loop.add(fd, on_socket_connect))
+update_headers()
+const fd = start_server('127.0.0.1', 3000)
 const method = assert(TLS_server_method())
 const ctx = assert(SSL_CTX_new(method))
 assert(SSL_CTX_use_PrivateKey_file(ctx, cstr('key.pem').ptr, SSL_FILETYPE_PEM) === 1)
@@ -150,3 +157,5 @@ const timer = new Timer(loop, 1000, on_timer)
 while (loop.poll() > 0) {}
 timer.close()
 close(fd)
+
+// we could just pre-allocate a large buffer and take slices off it

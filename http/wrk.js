@@ -41,17 +41,17 @@ function on_socket_event (fd) {
   stats.conn--
 }
 
-function on_socket_connect (fd) {
-  sockets.set(fd, create_socket(fd))
-  assert(!loop.modify(fd, Loop.Readable, on_socket_event, on_socket_error))
-  send_string(fd, `GET / HTTP/1.1\r\nHost: 127.0.0.1:3000\r\n\r\n`)
-  stats.conn++
-}
-
 function create_socket (fd) {
   return {
     parser: new ResponseParser(new Uint8Array(BUFSIZE)), fd
   }
+}
+
+function on_socket_connect (fd) {
+  sockets.set(fd, create_socket(fd))
+  assert(loop.modify(fd, Loop.Readable, on_socket_event, on_socket_error) === 0)
+  send_string(fd, `GET / HTTP/1.1\r\nHost: 127.0.0.1:3000\r\n\r\n`)
+  stats.conn++
 }
 
 function start_client () {
@@ -59,7 +59,7 @@ function start_client () {
   assert(fd > 2)
   const rc = connect(fd, sockaddr_in(address, port), SOCKADDR_LEN)
   if (rc < 0 && lo.errno !== EINPROGRESS) throw new Error(`net.connect: ${lo.errno}`)
-  loop.add(fd, on_socket_connect, Loop.Writable | Loop.EdgeTriggered, on_socket_error)
+  assert(loop.add(fd, on_socket_connect, Loop.Writable | Loop.EdgeTriggered, on_socket_error) === 0)
 }
 
 const sockets = new Map()
@@ -73,4 +73,4 @@ const nclient = parseInt(lo.args[2] || '64', 10)
 for (let i = 0; i < nclient; i++) start_client()
 while (loop.poll() > 0) {}
 timer.close()
-net.close(fd)
+close(fd)

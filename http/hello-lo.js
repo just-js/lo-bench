@@ -77,6 +77,7 @@ function start_server (addr, port) {
   assert(bind(fd, sockaddr_in(addr, port), 16) === 0)
   assert(listen(fd, SOMAXCONN) === 0)
   loop.add(fd, on_socket_connect)
+  return fd
 }
 
 const sockets = new Map()
@@ -85,7 +86,7 @@ const loop = new Loop()
 const stats = { rps: 0, conn: 0 }
 let plaintext = `Content-Type: text/plain;charset=utf-8\r\nDate: ${(new Date()).toUTCString()}\r\n`
 const timer = new Timer(loop, 1000, on_timer)
-start_server('127.0.0.1', 3000)
+const fd = start_server('127.0.0.1', 3000)
 while (loop.poll() > 0) {}
 timer.close()
-timer.close()
+close(fd)

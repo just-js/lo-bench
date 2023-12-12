@@ -1,4 +1,4 @@
-import { Bench } from 'crypto/lib/bench.mjs'
+import { Bench } from 'lib/bench.mjs'
 import { Digest } from 'lib/hash.js'
 
 const md5 = new Digest('md5')

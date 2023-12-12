@@ -1,5 +1,7 @@
 Deno.serve({
-  port: 3000
+  port: 3000,
+  cert: Deno.readTextFileSync('./cert.pem'),
+  key: Deno.readTextFileSync('./key.pem')
 }, (req) => {
 //    const { url, method, headers } = req
     stats.rps++
@@ -12,3 +14,4 @@ setInterval(() => {
   console.log(`rps ${stats.rps}`)
   stats.rps = 0
 }, 1000)
+

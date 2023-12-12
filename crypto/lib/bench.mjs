@@ -8,42 +8,23 @@ function pad (v, size, precision = 0) {
   return v.toFixed(precision).padStart(size, ' ')
 }
 
-function findmem (str) {
-  const space = ' '
-  let spaces = 0
-  let last = 0
-  while (spaces < 24) {
-    const i = str.indexOf(space, last)
-    if (i > 0) {
-      if (spaces++ === 23) return (Number(str.slice(last, i)) * 4096) / 1024
-      last = i + 1
-    } else {
-      break
-    }
-  }
-}
-
 async function wrap_mem_usage () {
   if (globalThis.Deno) {
+    if (core.os !== 'linux') return () => 0
     return () => Math.floor((Number((new TextDecoder()).decode(Deno.readFileSync('/proc/self/stat')).split(' ')[23]) * 4096)  / (1024))
   }
   if (globalThis.Bun) {
+    if (core.os !== 'linux') return () => 0
     const fs = require('node:fs')
     return () => Math.floor((Number((new TextDecoder()).decode(fs.readFileSync('/proc/self/stat')).split(' ')[23]) * 4096)  / (1024))
   } else if (globalThis.process) {
+    if (core.os !== 'linux') return () => 0
     const fs = await import('fs')
     return () => Math.floor((Number((new TextDecoder()).decode(fs.readFileSync('/proc/self/stat')).split(' ')[23]) * 4096)  / (1024))
   }
   if (globalThis.lo) {
-    const { ptr } = lo
-    const { pread, open, O_RDONLY } = lo.core
-    const fd = open(`/proc/self/stat`, O_RDONLY)
-    const buf = ptr(new Uint8Array(1024))
-    function readUsage () {
-      if (pread(fd, buf, 1024, 0) > 0) return findmem(decoder.decode(buf))
-      return 0
-    }
-    return readUsage
+    const { mem } = await import('lib/proc.js')
+    return mem
   }
 }
 

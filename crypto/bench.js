@@ -11,7 +11,11 @@ function spawn (...args) {
   ])
 }
 
-const prefix = 'nice -n 20 taskset --cpu-list 0'.split(' ')
+let prefix = []
+if (core.os === 'linux') {
+  prefix = 'nice -n 20 taskset --cpu-list 0'.split(' ')
+}
+
 const iter = parseInt(lo.args[2] || '5', 10)
 const runs = parseInt(lo.args[3] || '3000000', 10)
 const total = parseInt(lo.args[4] || '3', 10)
@@ -21,16 +25,14 @@ assert(fd > 2)
 assert(dup2(fd, STDOUT) === STDOUT)
 
 console.log(`${AM}node 20${AD}`)
-spawn('/home/andrew/.node/20/bin/node', 'crypto/hash-node.mjs')
-console.log(`${AM}node 21${AD}`)
-spawn('/home/andrew/.node/21/bin/node', 'crypto/hash-node.mjs')
+spawn('node', 'hash-node.mjs')
 console.log(`${AM}bun-node${AD}`)
-spawn('bun', 'crypto/hash-node.mjs')
+spawn('bun', 'hash-node.mjs')
 console.log(`${AM}deno-node${AD}`)
-spawn('deno', 'run', '-A', 'crypto/hash-node.mjs')
+spawn('deno', 'run', '-A', 'hash-node.mjs')
 console.log(`${AM}bun-native${AD}`)
-spawn('bun', 'crypto/hash-bun.js')
+spawn('bun', 'hash-bun.js')
 console.log(`${AM}deno-native${AD}`)
-spawn('deno', 'run', '-A', 'crypto/hash-deno.js')
+spawn('deno', 'run', '-A', 'hash-deno.js')
 console.log(`${AM}lo${AD}`)
-spawn('lo', 'crypto/hash-lo.js')
+spawn('lo', 'hash-lo.js')
