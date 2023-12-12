@@ -10,15 +10,16 @@ function pad (v, size, precision = 0) {
 
 async function wrap_mem_usage () {
   if (globalThis.Deno) {
-    if (core.os !== 'linux') return () => 0
+    if (Deno.build.os !== 'linux') return () => 0
     return () => Math.floor((Number((new TextDecoder()).decode(Deno.readFileSync('/proc/self/stat')).split(' ')[23]) * 4096)  / (1024))
   }
   if (globalThis.Bun) {
-    if (core.os !== 'linux') return () => 0
+    if (require('node:os').platform() !== 'linux') return () => 0
     const fs = require('node:fs')
     return () => Math.floor((Number((new TextDecoder()).decode(fs.readFileSync('/proc/self/stat')).split(' ')[23]) * 4096)  / (1024))
   } else if (globalThis.process) {
-    if (core.os !== 'linux') return () => 0
+    const os = await import('os')
+    if (os.platform() !== 'linux') return () => 0
     const fs = await import('fs')
     return () => Math.floor((Number((new TextDecoder()).decode(fs.readFileSync('/proc/self/stat')).split(' ')[23]) * 4096)  / (1024))
   }
