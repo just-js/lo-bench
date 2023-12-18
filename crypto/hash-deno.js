@@ -47,6 +47,7 @@ let total = parseInt(args[2] || '1', 10)
 const bench = new Bench()
 
 while (total--) {
+
 {
   for (let i = 0; i < iter; i++) {
     bench.start('md5-string')
@@ -96,4 +97,5 @@ while (total--) {
     bench.end(runs)
   }
 }
+
 }

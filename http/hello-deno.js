@@ -1,5 +1,6 @@
 Deno.serve({
-  port: 3000
+  port: 3000,
+  reusePort: true
 }, (req) => {
 //    const { url, method, headers } = req
     stats.rps++

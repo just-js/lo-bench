@@ -25,6 +25,11 @@ const md5_hsize = new Uint32Array(2)
 const md5_digest = ptr(new Uint8Array(sizes['md5']))
 const md5_ctx = EVP_MD_CTX_new()
 
+const sha256_hasher = EVP_get_digestbyname('sha256')
+const sha256_hsize = new Uint32Array(2)
+const sha256_digest = ptr(new Uint8Array(sizes['sha256']))
+const sha256_ctx = EVP_MD_CTX_new()
+
 function md5_hash_string (str) {
   assert(EVP_DigestInit_ex(md5_ctx, md5_hasher, 0) === 1)
   assert(EVP_DigestUpdateString(md5_ctx, str, utf8Length(str)) === 1)
@@ -41,6 +46,22 @@ function md5_hash_buffer (u8) {
   return md5_digest
 }
 
+function sha256_hash_string (str) {
+  assert(EVP_DigestInit_ex(sha256_ctx, sha256_hasher, 0) === 1)
+  assert(EVP_DigestUpdateString(sha256_ctx, str, utf8Length(str)) === 1)
+  assert(EVP_DigestFinal(sha256_ctx, sha256_digest, sha256_hsize) === 1)
+  EVP_MD_CTX_reset(sha256_ctx)
+  return sha256_digest
+}
+
+function sha256_hash_buffer (u8) {
+  assert(EVP_DigestInit_ex(sha256_ctx, sha256_hasher, 0) === 1)
+  assert(EVP_DigestUpdateBuffer(sha256_ctx, u8, u8.length) === 1)
+  assert(EVP_DigestFinal(sha256_ctx, sha256_digest, sha256_hsize) === 1)
+  EVP_MD_CTX_reset(sha256_ctx)
+  return sha256_digest
+}
+
 const encoder = new TextEncoder()
 const hello = encoder.encode('hello')
 
@@ -54,6 +75,8 @@ const expectedsha256 = [
 
 md5_hash_string('hello').forEach((v, i) => assert(v === expected[i]))
 md5_hash_buffer(hello).forEach((v, i) => assert(v === expected[i]))
+sha256_hash_string('hello').forEach((v, i) => assert(v === expectedsha256[i]))
+sha256_hash_buffer(hello).forEach((v, i) => assert(v === expectedsha256[i]))
 
 const iter = parseInt(args[0] || '3', 10)
 const runs = parseInt(args[1] || '1000000', 10)
@@ -77,6 +100,27 @@ while (total--) {
     bench.start('md5-buffer')
     for (let j = 0; j < runs; j++) {
       md5_hash_buffer(hello)
+    }
+    bench.end(runs)
+  }
+}
+
+
+{
+  for (let i = 0; i < iter; i++) {
+    bench.start('sha256-string')
+    for (let j = 0; j < runs; j++) {
+      sha256_hash_string('hello')
+    }
+    bench.end(runs)
+  }
+}
+
+{
+  for (let i = 0; i < iter; i++) {
+    bench.start('sha256-buffer')
+    for (let j = 0; j < runs; j++) {
+      sha256_hash_buffer(hello)
     }
     bench.end(runs)
   }

@@ -64,41 +64,20 @@ function test_response_parser () {
   const parser = new ResponseParser(new Uint8Array(16384))
   const written = utf8EncodeInto('HTTP/1.1 200 OK\r\nContent-Length: 0\r\nServer: foo\r\n\r\n', parser.rb)
   assert(parser.parse(written) === written)
-  //console.log(addr(parser.message))
   assert(parser.status_code[0] === 200)
   assert(parser.message_len[0] === 2)
   assert(parser.minor_version[0] === 1)
   assert(parser.num_headers[0] === 2)
-  let n = 0
-  for (let i = 0; i < parser.num_headers[0]; i++) {
-    const key_address = addr(parser.headers.subarray(n, n + 2))
-    const key_len = parser.headers[n + 2]
-    const val_address = addr(parser.headers.subarray(n + 4, n + 6))
-    const val_len = parser.headers[n + 6]
-    n += 8
-    //console.log(`${key_address} (${key_len}) : ${val_address} (${val_len}) `)
-  }
 }
 
 function test_request_parser () {
   const parser = new RequestParser(new Uint8Array(16384))
   const written = utf8EncodeInto('GET / HTTP/1.1\r\nHost: 127.0.0.1:3000\r\n\r\n', parser.rb)
   assert(parser.parse(written) === written)
-  //console.log(addr(parser.method))
-  //console.log(addr(parser.path))
   assert(parser.method_len[0] === 3)
   assert(parser.path_len[0] === 1)
   assert(parser.minor_version[0] === 1)
   assert(parser.num_headers[0] === 1)
-  let n = 0
-  for (let i = 0; i < parser.num_headers[0]; i++) {
-    const key_address = addr(parser.headers.subarray(n, n + 2))
-    const key_len = parser.headers[n + 2]
-    const val_address = addr(parser.headers.subarray(n + 4, n + 6))
-    const val_len = parser.headers[n + 6]
-    n += 8
-    //console.log(`${key_address} (${key_len}) : ${val_address} (${val_len}) `)
-  }
 }
 
 test_response_parser()

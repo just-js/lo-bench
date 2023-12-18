@@ -1,4 +1,4 @@
-import { Bench } from 'crypto/lib/bench.mjs'
+import { Bench } from 'lib/bench.mjs'
 
 const { mbedtls } = lo.load('mbedtls')
 

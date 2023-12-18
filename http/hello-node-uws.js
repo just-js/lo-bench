@@ -1,0 +1,5 @@
+require('uWebSockets.js')
+	.App()
+	.get('/', res => res.writeHeader('content-type', 'text/plain;charset=utf-8')
+		.end('Hello, World!'))
+	.listen(3000, () => {})

@@ -1,5 +1,6 @@
 Deno.serve({
   port: 3000,
+  reusePort: true,
   cert: Deno.readTextFileSync('./cert.pem'),
   key: Deno.readTextFileSync('./key.pem')
 }, (req) => {

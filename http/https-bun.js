@@ -4,6 +4,7 @@ Bun.serve({
     return new Response('Hello, World!') 
   },
   port: 3000,
+  reusePort: true,
   certFile: './cert.pem',
   keyFile: './key.pem'
 })
@@ -11,6 +12,6 @@ Bun.serve({
 const stats = { rps: 0 }
 
 setInterval(() => {
-  console.log(`rps ${stats.rps}`)
+//  console.log(`rps ${stats.rps}`)
   stats.rps = 0
 }, 1000)

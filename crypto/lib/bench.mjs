@@ -1,8 +1,22 @@
-const AD = '\u001b[0m' // ANSI Default
-const AG = '\u001b[32m' // ANSI Green
-const AY = '\u001b[33m' // ANSI Yellow
+function is_a_tty () {
+  if (globalThis.Deno) return Deno.isatty(1)
+  if (globalThis.lo) return lo.core.isatty(1)
+  return process.stdout.isTTY
+}
 
-const colors = { AD, AG, AY }
+const isatty = is_a_tty()
+
+const AD = isatty ? '\u001b[0m' : '' // ANSI Default
+const A0 = isatty ? '\u001b[30m' : '' // ANSI Black
+const AR = isatty ? '\u001b[31m' : '' // ANSI Red
+const AG = isatty ? '\u001b[32m' : '' // ANSI Green
+const AY = isatty ? '\u001b[33m' : '' // ANSI Yellow
+const AB = isatty ? '\u001b[34m' : '' // ANSI Blue
+const AM = isatty ? '\u001b[35m' : '' // ANSI Magenta
+const AC = isatty ? '\u001b[36m' : '' // ANSI Cyan
+const AW = isatty ? '\u001b[37m' : '' // ANSI White
+
+const colors = { AD, AG, AY, AM, AD, AR, AB, AC, AW, A0 }
 
 function pad (v, size, precision = 0) {
   return v.toFixed(precision).padStart(size, ' ')
@@ -17,7 +31,9 @@ async function wrap_mem_usage () {
     if (require('node:os').platform() !== 'linux') return () => 0
     const fs = require('node:fs')
     return () => Math.floor((Number((new TextDecoder()).decode(fs.readFileSync('/proc/self/stat')).split(' ')[23]) * 4096)  / (1024))
-  } else if (globalThis.process) {
+  }
+  if (globalThis.process) {
+    // node.js
     const os = await import('os')
     if (os.platform() !== 'linux') return () => 0
     const fs = await import('fs')
@@ -27,6 +43,17 @@ async function wrap_mem_usage () {
     const { mem } = await import('lib/proc.js')
     return mem
   }
+}
+
+function to_size_string (bytes) {
+  if (bytes < 1000) {
+    return `${bytes.toFixed(2)} Bps`
+  } else if (bytes < 1000 * 1000) {
+    return `${(Math.floor((bytes / 1000) * 100) / 100).toFixed(2)} KBps`
+  } else if (bytes < 1000 * 1000 * 1000) {
+    return `${(Math.floor((bytes / (1000 * 1000)) * 100) / 100).toFixed(2)} MBps`
+  }
+  return `${(Math.floor((bytes / (1000 * 1000 * 1000)) * 100) / 100).toFixed(2)} GBps`
 }
 
 function formatNanos (nanos) {
@@ -102,9 +129,10 @@ class Bench {
     this.#end = performance.now()
     const elapsed = this.#end - this.#start
     const rate = Math.floor(count / (elapsed / 1000))
-    const nanos = 1000000000 / rate
+    const nanos = Math.ceil(1000000000 / rate)
     const rss = mem()
-    if (this.#display) console.log(`${this.#name} ${pad(Math.floor(elapsed), 6)} ms ${AG}rate${AD} ${pad(rate, 10)} ${formatNanos(nanos)} ${AG}rss${AD} ${rss}`)
+    //if (this.#display) console.log(`${this.#name} ${pad(Math.floor(elapsed), 6)} ms ${AG}rate${AD} ${pad(rate, 10)} ${formatNanos(nanos)} ${AG}rss${AD} ${rss}`)
+    if (this.#display) console.log(`${AM}${this.#name.trim()}${AD} ${AY}time${AD} ${Math.floor(elapsed)} ${AY}rate${AD} ${rate} ${AG}ns/iter${AD} ${nanos} ${AG}rss${AD} ${rss}`)
     return { name: this.#name.trim(), count, elapsed, rate, nanos, rss, runtime }
   }
 }
@@ -158,4 +186,4 @@ if (!globalThis.assert) {
 }
 
 
-export { pad, formatNanos, colors, run, runAsync, Bench, mem, runtime }
+export { pad, formatNanos, colors, run, runAsync, Bench, mem, runtime, to_size_string }

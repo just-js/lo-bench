@@ -1,0 +1,17 @@
+{
+  "name": "foo",
+  "description": "this works on a fresh debian:bookworm-slim docker. i'll push it up to docs repo later.",
+  "version": "1.0.0",
+  "main": "bench-pico-ffi.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.33.0"
+  }
+}

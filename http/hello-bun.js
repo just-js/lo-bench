@@ -3,7 +3,8 @@ Bun.serve({
     stats.rps++
     return new Response('Hello, World!') 
   },
-  port: 3000
+  port: 3000,
+  reusePort: true
 })
 
 const stats = { rps: 0 }
