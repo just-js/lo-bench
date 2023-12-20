@@ -15,6 +15,7 @@ async function main () {
   assert(res.minor_version === 1)
   const body = await res.bytes()
   const { content_length, body_bytes } = res
+  console.log(body_bytes)
   assert(content_length === 0 || content_length === body_bytes)
   assert(body.length === body_bytes)
 }
