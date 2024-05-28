@@ -1,3 +1,4 @@
+import { Stats } from '../lib/bench.mjs'
 import { listen } from "bun";
 
 const handlers = {
@@ -27,24 +28,10 @@ const handlers = {
   }
 };
 
-function to_size_string (bytes) {
-  if (bytes < 1000) {
-    return `${bytes} Bps`
-  } else if (bytes < 1000 * 1000) {
-    return `${Math.floor((bytes / 1000) * 100) / 100} KBps`
-  } else if (bytes < 1000 * 1000 * 1000) {
-    return `${Math.floor((bytes / (1000 * 1000)) * 100) / 100} MBps`
-  }
-  return `${Math.floor((bytes / (1000 * 1000 * 1000)) * 100) / 100} GBps`
-}
-
-const stats = {
-  send: 0, recv: 0, conn: 0
-};
+const stats = new Stats()
 
 setInterval(() => {
-  console.log(`send ${to_size_string(stats.send)} recv ${to_size_string(stats.recv)} conn ${stats.conn}`)
-  stats.send = stats.recv = 0;
+  stats.log()
 }, 1000);
 
 const server = listen({

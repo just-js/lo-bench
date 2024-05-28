@@ -16,6 +16,7 @@ async function main () {
   const body = await res.bytes()
   const { content_length, body_bytes } = res
   console.log(body_bytes)
+  console.log(JSON.stringify(res.headers, null, '  '))
   assert(content_length === 0 || content_length === body_bytes)
   assert(body.length === body_bytes)
 }
