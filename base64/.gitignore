@@ -1,0 +1,5 @@
+lib/simdtext/*.cc
+*.o
+*.so
+*.a
+lib/simdtext/deps
