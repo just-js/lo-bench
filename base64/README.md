@@ -580,3 +580,123 @@ bun      Buffer.from  32          99.64 MBps   1.03 % 🟡
 deno     Buffer.write 32          26.06 MBps   0.27 % 🟣
 deno     Buffer.from  32          14.78 MBps   0.16 % 🟣
 ```
+
+## Linux Raspberry Pi 3B+
+
+```shell
+Linux pi 6.6.28+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.6.28-1+rpt1 (2024-04-22) aarch64 GNU/Linux
+# dmidecode 3.4
+# No SMBIOS nor DMI entry point found, sorry.
+bun 1.1.16
+lo 0.0.17-pre
+deno deno 1.44.4 (release, aarch64-unknown-linux-gnu)
+node v22.3.0
+```
+
+```shell
+node v deno (Buffer.from)
+
+32           ops/sec/core thru/core    ratio 
+node               289192     9.25 MBps  12.72 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                22727   727.26 KBps   0.07 🟣🟣
+512          ops/sec/core thru/core    ratio 
+node               121622    62.27 MBps   9.11 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                13346     6.83 MBps    0.1 🟣🟣🟣
+65536        ops/sec/core thru/core    ratio 
+node                 1102    72.22 MBps   3.43 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                  321    21.03 MBps   0.29 🟣🟣🟣🟣🟣🟣🟣🟣
+524288       ops/sec/core thru/core    ratio 
+node                  120    62.91 MBps   3.24 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                36.98    19.38 MBps    0.3 🟣🟣🟣🟣🟣🟣🟣🟣🟣
+8388608      ops/sec/core thru/core    ratio 
+node                  7.4    62.07 MBps   2.94 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                 2.51    21.05 MBps   0.33 🟣🟣🟣🟣🟣🟣🟣🟣🟣🟣
+
+
+node v deno (Buffer.write)
+
+32           ops/sec/core thru/core    ratio 
+node               401738    12.85 MBps   10.1 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                39738     1.27 MBps   0.09 🟣🟣
+512          ops/sec/core thru/core    ratio 
+node               163658    83.79 MBps   8.19 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                19980    10.22 MBps   0.12 🟣🟣🟣
+65536        ops/sec/core thru/core    ratio 
+node                 2132   139.72 MBps    6.4 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                  333    21.82 MBps   0.15 🟣🟣🟣🟣
+524288       ops/sec/core thru/core    ratio 
+node                  236   123.73 MBps   6.22 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                37.89    19.86 MBps   0.16 🟣🟣🟣🟣
+8388608      ops/sec/core thru/core    ratio 
+node                18.85   158.12 MBps   7.39 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+deno                 2.55    21.39 MBps   0.13 🟣🟣🟣🟣
+
+
+node v lo (Buffer.write)
+
+32           ops/sec/core thru/core    ratio 
+node               401738    12.85 MBps   0.53 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+lo                 754813    24.15 MBps   1.87 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+512          ops/sec/core thru/core    ratio 
+node               163658    83.79 MBps   0.57 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+lo                 286686   146.78 MBps   1.75 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+65536        ops/sec/core thru/core    ratio 
+node                 2132   139.72 MBps   0.57 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+lo                   3707   242.94 MBps   1.73 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+524288       ops/sec/core thru/core    ratio 
+node                  236   123.73 MBps   0.52 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+lo                    448   234.88 MBps   1.89 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+8388608      ops/sec/core thru/core    ratio 
+node                18.85   158.12 MBps   0.67 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+lo                  27.92   234.20 MBps   1.48 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+
+
+deno v lo (Buffer.write)
+
+32           ops/sec/core thru/core    ratio 
+deno                39738     1.27 MBps   0.05 🟣
+lo                 754813    24.15 MBps  18.99 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+512          ops/sec/core thru/core    ratio 
+deno                19980    10.22 MBps   0.06 🟣🟣
+lo                 286686   146.78 MBps  14.34 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+65536        ops/sec/core thru/core    ratio 
+deno                  333    21.82 MBps   0.08 🟣🟣
+lo                   3707   242.94 MBps  11.13 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+524288       ops/sec/core thru/core    ratio 
+deno                37.89    19.86 MBps   0.08 🟣🟣
+lo                    448   234.88 MBps  11.82 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+8388608      ops/sec/core thru/core    ratio 
+deno                 2.55    21.39 MBps   0.09 🟣🟣
+lo                  27.92   234.20 MBps  10.94 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+
+
+Base64 Decoding Throughput Rankings
+
+runtime  name         size     thru          ratio   
+
+lo       Buffer.write 65536      242.94 MBps 100.00 % 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+lo       Buffer.write 524288     234.88 MBps  96.69 % 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+lo       Buffer.write 8388608    234.20 MBps  96.41 % 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+node     Buffer.write 8388608    158.12 MBps  65.09 % 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+lo       Buffer.write 512        146.78 MBps  60.42 % 🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠🟠
+node     Buffer.write 65536      139.72 MBps  57.52 % 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+node     Buffer.write 524288     123.73 MBps  50.94 % 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+node     Buffer.write 512         83.79 MBps  34.50 % 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+node     Buffer.from  65536       72.22 MBps  29.73 % 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+node     Buffer.from  524288      62.91 MBps  25.90 % 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+node     Buffer.from  512         62.27 MBps  25.64 % 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+node     Buffer.from  8388608     62.07 MBps  25.56 % 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢
+lo       Buffer.write 32          24.15 MBps   9.95 % 🟠🟠🟠🟠🟠
+deno     Buffer.write 65536       21.82 MBps   8.99 % 🟣🟣🟣🟣🟣
+deno     Buffer.write 8388608     21.39 MBps   8.81 % 🟣🟣🟣🟣🟣
+deno     Buffer.from  8388608     21.05 MBps   8.67 % 🟣🟣🟣🟣🟣
+deno     Buffer.from  65536       21.03 MBps   8.66 % 🟣🟣🟣🟣🟣
+deno     Buffer.write 524288      19.86 MBps   8.18 % 🟣🟣🟣🟣🟣
+deno     Buffer.from  524288      19.38 MBps   7.99 % 🟣🟣🟣🟣
+node     Buffer.write 32          12.85 MBps   5.30 % 🟢🟢🟢
+deno     Buffer.write 512         10.22 MBps   4.22 % 🟣🟣🟣
+node     Buffer.from  32           9.25 MBps   3.81 % 🟢🟢
+deno     Buffer.from  512          6.83 MBps   2.82 % 🟣🟣
+deno     Buffer.write 32           1.27 MBps   0.53 % 🟣
+deno     Buffer.from  32         727.26 KBps   0.30 % 🟣
+```

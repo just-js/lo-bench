@@ -103,18 +103,22 @@ function throughput () {
 const { AM, AY, AG, AD, AC } = colors
 const icon = { lo: '🟠', deno:  '🟣', node: '🟢', bun: '🟡' }
 const decoder = new TextDecoder()
-const results = decoder.decode(readFileSync(args[0] || './results-linux.txt'))
+const file_name = args[0] || './results-linux.txt'
+const results = decoder.decode(readFileSync(file_name))
 const lines = results.split('\n').filter(l => l)
 const rx = /(\w+)\s+([\w\.]+)\s+(\d+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)/
 const scores = get_scores(lines)
 const sizes = scores.map(score => score.size).filter(uniq)
-head2head('Buffer.from', 'node', 'bun')
 head2head('Buffer.from', 'node', 'deno')
-head2head('Buffer.from', 'bun', 'deno')
-head2head('Buffer.write', 'node', 'bun')
 head2head('Buffer.write', 'node', 'deno')
 head2head('Buffer.write', 'node', 'lo')
-head2head('Buffer.write', 'bun', 'deno')
-head2head('Buffer.write', 'bun', 'lo')
+// bun does not run on raspberry pi 3B+ so we don't report on it for the pi results
+if (args[0].slice(-7) !== '-pi.txt') {
+  head2head('Buffer.from', 'node', 'bun')
+  head2head('Buffer.from', 'bun', 'deno')
+  head2head('Buffer.write', 'node', 'bun')
+  head2head('Buffer.write', 'bun', 'deno')
+  head2head('Buffer.write', 'bun', 'lo')
+}
 head2head('Buffer.write', 'deno', 'lo')
 throughput()
