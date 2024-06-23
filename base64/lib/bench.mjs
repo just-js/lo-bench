@@ -62,30 +62,65 @@ function cpu_usage (bytes) {
 
 async function wrap_mem_usage () {
   if (globalThis.Deno) {
-    if (Deno.build.os !== 'linux') return () => 0
-    const mem = () => memory_usage(Deno.readFileSync('/proc/self/stat'))
-    const cputime = () => cpu_usage(Deno.readFileSync('/proc/self/stat'))
-    return { mem, cputime }
-  }
-  if (globalThis.Bun) {
-    if (require('node:os').platform() !== 'linux') return () => 0
-    const fs = require('node:fs')
-    const mem = () => memory_usage(fs.readFileSync('/proc/self/stat'))
-    const cputime = () => cpu_usage(fs.readFileSync('/proc/self/stat'))
-    return { mem, cputime }
+    if (Deno.build.os === 'linux') {
+      const mem = () => memory_usage(Deno.readFileSync('/proc/self/stat'))
+      const cputime = () => cpu_usage(Deno.readFileSync('/proc/self/stat'))
+      return { mem, cputime }
+    }
+    const mem = () => Deno.memoryUsage().rss
+    const _SC_CLK_TCK = 3
+    const api = Deno.dlopen("libc.dylib", {
+      sysconf: { parameters: ['i32'], result: 'i32' },
+      times: { parameters: ['buffer'], result: 'i32' }  
+    }).symbols
+    const { sysconf, times } = api
+    const clock_ticks_per_second = sysconf(_SC_CLK_TCK)
+    const last = new Int32Array(5) 
+    const current = new Int32Array(6) 
+    current[5] = clock_ticks_per_second
+    const time32 = new Uint32Array(9)
+    const _cputime = () => {
+      time32[4] = times(time32)
+      for (let i = 0; i < 5; i++) {
+        current[i] = time32[i] - last[i]
+        last[i] = time32[i]
+      }
+      return current
+    }
+    _cputime()
+    return { mem, cputime: () => {
+      const [ usr, , sys, , , ticks ] = _cputime()
+      return [ usr / ticks, sys / ticks ]
+    }}
   }
   if (globalThis.process) {
     const os = await import('os')
-    if (os.platform() !== 'linux') return () => 0
-    const fs = await import('fs')
-    const mem = () => memory_usage(fs.readFileSync('/proc/self/stat'))
-    const cputime = () => cpu_usage(fs.readFileSync('/proc/self/stat'))
-    return { mem, cputime }
+    if (os.platform() === 'linux') {
+      const fs = await import('fs')
+      const mem = () => memory_usage(fs.readFileSync('/proc/self/stat'))
+      const cputime = () => cpu_usage(fs.readFileSync('/proc/self/stat'))
+      return { mem, cputime }
+    }
+    let prev = process.cpuUsage()
+    return { mem: () => process.memoryUsage().rss, cputime: () => {
+      const cpu = process.cpuUsage()
+      const user = cpu.user - prev.user
+      const system = cpu.system - prev.system
+      prev = cpu
+      const usr = (user / 1000000)
+      const sys = (system / 1000000)
+      return [ usr, sys ]
+    }}
   }
   if (globalThis.lo) {
-    const mem = () => memory_usage(lo.core.read_file('/proc/self/stat', lo.core.READ_ONLY, 65536))
-    const cputime = () => cpu_usage(lo.core.read_file('/proc/self/stat', lo.core.READ_ONLY, 65536))
-    return { mem, cputime }
+    const proc = await import('lib/proc.js')
+    proc.cputime()
+    const cputime = () => {
+      const cpu = proc.cputime()
+      const [ usr, , sys, , , ticks ] = cpu
+      return [ usr / ticks, sys / ticks ]
+    }
+    return { mem: proc.mem, cputime }
   }
 }
 
@@ -184,7 +219,6 @@ class Bench {
     const cpu = cputime()
     const usr = Math.floor((cpu[0] / seconds) * 10000) / 100
     const sys = Math.floor((cpu[1] / seconds) * 10000) / 100
-    //const total = Math.floor(((cpu[0] + cpu[1]) / seconds) * 100 )
     const total = usr + sys
     const rate_pc = Math.ceil(rate / (total / 100))
     const ns_iter = Math.floor((nanos / count) * 100) / 100

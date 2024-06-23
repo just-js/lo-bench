@@ -86,7 +86,7 @@ function get_thru_scores () {
 
 function throughput () {
   console.log('')
-  console.log(`${AM}Throughput Rankings${AD}`)
+  console.log(`${AC}Base64 Decoding Throughput Rankings${AD}`)
   console.log('')
   console.log(`${header('runtime', 8)} ${header('name')} ${header('size', 8)} ${header('thru', 13)} ${header('ratio', 8)}`)
   console.log('')
@@ -95,7 +95,7 @@ function throughput () {
   for (const score of thru) {
     const { runtime, name, size, thru } = score
     const pc_max = (thru / max_thru)
-    console.log(`${AY}${field_left(runtime, 8)}${AD} ${AM}${field_left(name)}${AD} ${field_left(size, 8)} ${to_size_string(thru)} ${field((Math.floor(pc_max * 10000) / 100).toFixed(2), 6)} % ${icon[runtime].repeat(Math.ceil(pc_max * 50))}`)
+    console.log(`${AY}${field_left(runtime, 8)}${AD} ${AM}${field_left(name)}${AD} ${field_left(size, 8)} ${to_size_string(thru)} ${field((Math.ceil(pc_max * 10000) / 100).toFixed(2), 6)} % ${icon[runtime].repeat(Math.ceil(pc_max * 50))}`)
   }
   console.log('')
 }
@@ -103,7 +103,7 @@ function throughput () {
 const { AM, AY, AG, AD, AC } = colors
 const icon = { lo: '🟠', deno:  '🟣', node: '🟢', bun: '🟡' }
 const decoder = new TextDecoder()
-const results = decoder.decode(readFileSync('./results.txt'))
+const results = decoder.decode(readFileSync(args[0] || './results-linux.txt'))
 const lines = results.split('\n').filter(l => l)
 const rx = /(\w+)\s+([\w\.]+)\s+(\d+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)/
 const scores = get_scores(lines)
