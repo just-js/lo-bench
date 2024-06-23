@@ -88,7 +88,7 @@ function throughput () {
   console.log('')
   console.log(`${AM}Throughput Rankings${AD}`)
   console.log('')
-  console.log(`${header('runtime', 8)} ${header('name')} ${header('size', 13)} ${header('thru', 8)} ${header('ratio', 8)}`)
+  console.log(`${header('runtime', 8)} ${header('name')} ${header('size', 8)} ${header('thru', 13)} ${header('ratio', 8)}`)
   console.log('')
   const thru = get_thru_scores()
   const max_thru = thru[0].thru

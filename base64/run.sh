@@ -10,4 +10,4 @@ deno run -A base64.mjs | tee -a results.txt
 bun base64.mjs | tee -a results.txt
 node base64.mjs | tee -a results.txt
 lo base64-lo.js | tee -a results.txt
-node parse.mjs
+node results.mjs
