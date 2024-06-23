@@ -25,6 +25,7 @@ for (let x = 0; x < sizes.length; x++) {
     }
     for (let i = 0; i < iter; i++) {
       const bench = new Bench()
+      bench.name_width = 30
       bench.start(`Buffer.from ${size}`)
       for (let j = 0; j < runs; j++) fn()
       bench.end(runs)
@@ -43,6 +44,7 @@ for (let x = 0; x < sizes.length; x++) {
     }
     for (let i = 0; i < iter; i++) {
       const bench = new Bench()
+      bench.name_width = 30
       bench.start(`Buffer.write ${size}`)
       for (let j = 0; j < runs; j++) fn()
       bench.end(runs)
