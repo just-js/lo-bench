@@ -5,7 +5,7 @@ RUN apt-get install -y curl make g++ autoconf libtool unzip xz-utils cmake
 WORKDIR /bench
 
 # node.js
-ARG NODE_VERSION=22.2.0
+ARG NODE_VERSION=22.3.0
 RUN curl -L -o nodejs.tar.xz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz
 RUN tar -xvf nodejs.tar.xz
 RUN mv node-v${NODE_VERSION}-linux-x64 /root/.node

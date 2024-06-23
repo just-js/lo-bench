@@ -27,8 +27,9 @@ cd lo-bench/base64
 export LO_VERSION=0.0.17-pre
 curl -L -o ${LO_VERSION}.tar.gz https://github.com/just-js/lo/archive/refs/tags/${LO_VERSION}.tar.gz
 tar -xf ${LO_VERSION}.tar.gz
+rm -fr ${HOME}/.lo
 mv lo-${LO_VERSION} ${HOME}/.lo
-rm lo-${LO_VERSION}.tar.gz
+rm ${LO_VERSION}.tar.gz
 curl -L -o lo-mac-arm64.gz https://github.com/just-js/lo/releases/download/${LO_VERSION}/lo-mac-arm64.gz
 gunzip lo-mac-arm64.gz
 mv lo-mac-arm64 lo
@@ -37,7 +38,9 @@ chmod +x lo
 ## install node
 curl -L -o nodejs.tar.gz https://nodejs.org/dist/v22.3.0/node-v22.3.0-darwin-arm64.tar.gz
 tar -xvf nodejs.tar.gz
+rm -fr ${HOME}/.node
 mv node-v22.3.0-darwin-arm64 ${HOME}/.node
+rm nodejs.tar.gz
 ## install bun
 curl -fsSL https://bun.sh/install | bash
 ## install deno
