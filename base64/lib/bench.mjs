@@ -91,13 +91,13 @@ async function wrap_mem_usage () {
 
 function to_size_string (bytes) {
   if (bytes < 1000) {
-    return `${bytes.toFixed(2)} Bps`
+    return `${bytes.toFixed(2).padStart(8, ' ')} ${AY} Bps${AD}`
   } else if (bytes < 1000 * 1000) {
-    return `${(Math.floor((bytes / 1000) * 100) / 100).toFixed(2)} KBps`
+    return `${(Math.floor((bytes / 1000) * 100) / 100).toFixed(2).padStart(8, ' ')} ${AY}KBps${AD}`
   } else if (bytes < 1000 * 1000 * 1000) {
-    return `${(Math.floor((bytes / (1000 * 1000)) * 100) / 100).toFixed(2)} MBps`
+    return `${(Math.floor((bytes / (1000 * 1000)) * 100) / 100).toFixed(2).padStart(8, ' ')} ${AY}MBps${AD}`
   }
-  return `${(Math.floor((bytes / (1000 * 1000 * 1000)) * 100) / 100).toFixed(2)} GBps`
+  return `${(Math.floor((bytes / (1000 * 1000 * 1000)) * 100) / 100).toFixed(2).padStart(8, ' ')} ${AY}GBps${AD}`
 }
 
 function formatNanos (nanos) {
