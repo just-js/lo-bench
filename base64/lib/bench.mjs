@@ -214,19 +214,21 @@ class Bench {
     const elapsed = this.#end - this.#start
     const nanos = Math.floor(elapsed * 1000000)
     const seconds = nanos / 1000000000
-    const rate = Math.floor(count / seconds)
+    let rate = count / seconds
     const rss = mem()
     const cpu = cputime()
     const usr = Math.floor((cpu[0] / seconds) * 10000) / 100
     const sys = Math.floor((cpu[1] / seconds) * 10000) / 100
     const total = usr + sys
-    const rate_pc = Math.ceil(rate / (total / 100))
+    const rate_pc_f = rate / (total / 100)
+    const rate_pc = rate_pc_f > 100 ? Math.ceil(rate_pc_f) : Math.ceil(rate_pc_f * 100) / 100
     const ns_iter = Math.floor((nanos / count) * 100) / 100
+    rate = rate > 100 ? Math.ceil(rate) : Math.ceil(rate * 100) / 100
     if (this.#display) {
       if (size) {
-        console.log(`${AC}${runtime.name.padEnd(10, ' ')}${AD} ${AM}${this.#name.trim().padEnd(this.#name_width, ' ')}${AD} ${AY}time${AD} ${Math.floor(elapsed).toString().padStart(8, ' ')} ${AY}rate${AD} ${rate.toString().padStart(10, ' ')} ${AM}rate/core${AD} ${rate_pc.toString().padStart(10, ' ')} ${AG}ns/iter${AD} ${ns_iter.toFixed(2).padStart(12, ' ')} ${AG}rss${AD} ${rss.toString().padStart(12, ' ')} ${AG}usr${AD} ${usr.toFixed(2).padStart(6, ' ')} ${AR}sys${AD} ${sys.toFixed(2).padStart(6, ' ')} ${AY}tot${AD} ${total.toFixed(2).padStart(6, ' ')} ${AG}thru${AD} ${to_size_string(rate_pc * size).padStart(12, ' ')}`)
+        console.log(`${AC}${runtime.name.padEnd(10, ' ')}${AD} ${AM}${this.#name.trim().padEnd(this.#name_width, ' ')}${AD} ${AY}time${AD} ${Math.floor(elapsed).toString().padStart(8, ' ')} ${AY}rate${AD} ${rate.toString().padStart(12, ' ')} ${AM}rate/core${AD} ${rate_pc.toString().padStart(12, ' ')} ${AG}ns/iter${AD} ${ns_iter.toFixed(2).padStart(12, ' ')} ${AG}rss${AD} ${rss.toString().padStart(12, ' ')} ${AG}usr${AD} ${usr.toFixed(2).padStart(6, ' ')} ${AR}sys${AD} ${sys.toFixed(2).padStart(6, ' ')} ${AY}tot${AD} ${total.toFixed(2).padStart(6, ' ')} ${AG}thru${AD} ${to_size_string(rate_pc * size).padStart(12, ' ')}`)
       } else {
-        console.log(`${AC}${runtime.name.padEnd(10, ' ')}${AD} ${AM}${this.#name.trim().padEnd(this.#name_width, ' ')}${AD} ${AY}time${AD} ${Math.floor(elapsed).toString().padStart(8, ' ')} ${AY}rate${AD} ${rate.toString().padStart(10, ' ')} ${AM}rate/core${AD} ${rate_pc.toString().padStart(10, ' ')} ${AG}ns/iter${AD} ${ns_iter.toFixed(2).padStart(12, ' ')} ${AG}rss${AD} ${rss.toString().padStart(12, ' ')} ${AG}usr${AD} ${usr.toFixed(2).padStart(6, ' ')} ${AR}sys${AD} ${sys.toFixed(2).padStart(6, ' ')} ${AY}tot${AD} ${total.toFixed(2).padStart(6, ' ')}`)
+        console.log(`${AC}${runtime.name.padEnd(10, ' ')}${AD} ${AM}${this.#name.trim().padEnd(this.#name_width, ' ')}${AD} ${AY}time${AD} ${Math.floor(elapsed).toString().padStart(8, ' ')} ${AY}rate${AD} ${rate.toString().padStart(12, ' ')} ${AM}rate/core${AD} ${rate_pc.toString().padStart(12, ' ')} ${AG}ns/iter${AD} ${ns_iter.toFixed(2).padStart(12, ' ')} ${AG}rss${AD} ${rss.toString().padStart(12, ' ')} ${AG}usr${AD} ${usr.toFixed(2).padStart(6, ' ')} ${AR}sys${AD} ${sys.toFixed(2).padStart(6, ' ')} ${AY}tot${AD} ${total.toFixed(2).padStart(6, ' ')}`)
       }
     }
     return { name: this.#name.trim(), count, elapsed, rate, nanos, rss, runtime, usr, sys, rate_pc, ns_iter, seconds }

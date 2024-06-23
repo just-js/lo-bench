@@ -10,7 +10,7 @@ const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 const iter = parseInt(args[0] || '5', 10)
 const sizes = [ 32, 512, 64 * 1024, 512 * 1024, 1024 * 1024 * 8 ]
-const rates = [ 9000000, 6000000, 60000, 6000, 200 ]
+const rates = [ 90000, 60000, 600, 60, 2 ]
 
 for (let x = 0; x < sizes.length; x++) {
   const size = sizes[x]
