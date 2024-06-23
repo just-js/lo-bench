@@ -1,4 +1,4 @@
-import { Bench } from '../lib/bench.mjs'
+import { Bench } from './lib/bench.mjs'
 import { Buffer } from 'node:buffer'
 
 const iter = parseInt(args[0] || '5', 10)
@@ -7,8 +7,14 @@ bench.name_width = 30
 
 const sizes = [ 32, 512, 64 * 1024, 512 * 1024, 1024 * 1024 * 8 ]
 const rates = [
-  [ 9000000, 6000000, 60000, 6000, 200 ],
-  [ 16000000, 9000000, 180000, 18000, 1600 ]
+  globalThis.Bun ? 
+    [ 9000000, 6000000, 240000, 24000, 1200 ] : 
+    globalThis.Deno ? [1000000, 600000, 14000, 1800, 100] : 
+    [ 9000000, 6000000, 60000, 6000, 200 ],
+  globalThis.Bun ? 
+    [ 32000000, 18000000, 180000, 18000, 1600 ] : 
+    globalThis.Deno ? [2000000, 1000000, 20000, 1800, 100] :
+    [ 16000000, 9000000, 180000, 18000, 1600 ]
 ]
 
 for (let x = 0; x < sizes.length; x++) {

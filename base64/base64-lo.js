@@ -1,4 +1,4 @@
-import { Bench } from '../lib/bench.mjs'
+import { Bench } from './lib/bench.mjs'
 
 const { ptr } = lo
 const { simdtext } = lo.load('simdtext')
@@ -23,7 +23,7 @@ for (let x = 0; x < sizes.length; x++) {
   assert(base64_decode_str(buf.ptr, buf.length, input, input.length) === size)
   assert(base64_decode(buf.ptr, buf.length, input) === size)
   for (let i = 0; i < iter; i++) {
-    bench.start(`base64_simd_fast ${size}`)
+    bench.start(`Buffer.write ${size}`)
     for (let j = 0; j < runs; j++) {
       assert(base64_decode(buf.ptr, buf.length, input) === size)
     }

@@ -3,3 +3,5 @@
 *.md
 lib
 .gitignore
+*.txt
+*.sh

@@ -19,7 +19,7 @@ RUN /bin/bash -o pipefail -c "$(curl -fsSL https://bun.sh/install)"
 RUN /bin/bash -o pipefail -c "$(curl -fsSL https://deno.land/install.sh)"
 
 # lo
-ARG LO_VERSION=0.0.16-pre
+ARG LO_VERSION=0.0.17-pre
 RUN curl -L -o ${LO_VERSION}.tar.gz https://github.com/just-js/lo/archive/refs/tags/${LO_VERSION}.tar.gz
 RUN tar -xf ${LO_VERSION}.tar.gz
 RUN mv lo-${LO_VERSION} /root/.lo
