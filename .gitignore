@@ -1,7 +1,6 @@
 node_modules
 *.db
 *.log
-*.gz
 *.lockb
 *.db-journal
 *.db-shm
