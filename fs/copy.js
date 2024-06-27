@@ -37,7 +37,7 @@ copy(`${dest_dir}/test`, `${dest_dir}/test2`, opts)
 
 const iter = 5
 const bench = new Bench()
-const runs = 14000
+const runs = 10000
 
 for (let i = 0; i < iter; i++) {
   bench.start('copy')
