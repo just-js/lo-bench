@@ -1,1 +1,6 @@
 openssl-*
+lib/**/*.cc
+*.o
+*.so
+*.a
+lib/**/deps
