@@ -25,17 +25,24 @@ const skip_existing = 1
 const overwrite_existing = 2
 const update_existing = 4
 const recursive = 8
+const copy_symlinks = 16
+const skip_symlinks = 32
+const directories_only = 64
+const create_symlinks = 128
+const create_hard_links = 256
 
-copy('/dev/shm/test', '/dev/shm/test2', recursive | skip_existing)
+const dest_dir = args[0] || '/dev/shm'
+const opts = recursive | overwrite_existing | copy_symlinks
+copy(`${dest_dir}/test`, `${dest_dir}/test2`, opts)
 
 const iter = 5
 const bench = new Bench()
-const runs = 100
+const runs = 14000
 
 for (let i = 0; i < iter; i++) {
   bench.start('copy')
   for (let j = 0; j < runs; j++) {
-    copy('/dev/shm/test', '/dev/shm/test2', recursive | skip_existing)
+    copy(`${dest_dir}/test`, `${dest_dir}/test2`, opts)
   }
   bench.end(runs)
 }

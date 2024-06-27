@@ -1,0 +1,9 @@
+*.mjs
+*.js
+*.md
+lib
+.gitignore
+*.txt
+*.sh
+*.md
+*.gz
