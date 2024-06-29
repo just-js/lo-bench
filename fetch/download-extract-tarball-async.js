@@ -1,4 +1,4 @@
-import { http_get } from 'lib/fetch.js'
+import { http_get } from './lib/fetch.js'
 import { Loop } from 'lib/loop.js'
 import { write_flags, write_mode, dir_flags, isDir } from 'lib/fs.js'
 import { inflate } from 'lib/inflate.js'
@@ -22,8 +22,6 @@ function get_filename (content_dispoition_header) {
 if (!isDir('tmp')) assert(mkdir('tmp', dir_flags) === 0)
 
 http_get('https://codeload.github.com/WireGuard/wireguard-tools/tar.gz/master', loop, (err, res) => {
-//fetch('https://codeload.github.com/just-js/lo/tar.gz/main', loop, (err, res) => {
-//fetch('https://codeload.github.com/google/boringssl/tar.gz/master', loop, (err, res) => {
   if (err) throw err
   assert(res.status === 200)
   const {

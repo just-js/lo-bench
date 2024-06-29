@@ -1,0 +1,1 @@
+hyperfine --warmup 5 "lo download-curl.js" "lo download-async.js" "curl --http1.1 -s -L -o /dev/shm/tmp/wireguard-tools-master.tar.gz https://codeload.github.com/WireGuard/wireguard-tools/tar.gz/master"
