@@ -1,10 +1,10 @@
-import { Bench } from 'lib/bench.js'
-import { bind } from 'lib/ffi.js'
+import { Bench } from '../fs/lib/bench.mjs'
+import { bind } from './ffi.js'
 
 const { assert, ptr, core, utf8EncodeInto, addr } = lo
 const { dlopen, dlsym } = core
 
-const handle = dlopen('./lib/pico/pico.so', 1)
+const handle = dlopen('./pico.so', 1)
 const phr_parse_request = bind(dlsym(handle, 'phr_parse_request'), 'i32', [
   'pointer', 'u32', 'pointer', 'pointer', 'pointer', 'pointer', 
   'pointer', 'pointer', 'pointer', 'u64'
@@ -83,27 +83,29 @@ function test_request_parser () {
 test_response_parser()
 test_request_parser()
 
-const iter = 5
-const runs = 30000000
+const iter = 20
+const runs = 50000000
 const bench = new Bench()
 const encoder = new TextEncoder()
 
-const request_parser = new RequestParser(encoder.encode('GET / HTTP/1.1\r\nHost: 127.0.0.1:3000\r\n\r\n'))
-assert(request_parser.parse() === 40)
+const req_buf = encoder.encode('GET / HTTP/1.1\r\n\r\n')
+const request_parser = new RequestParser(req_buf)
+assert(request_parser.parse() === req_buf.length)
 
-const response_parser = new ResponseParser(encoder.encode('HTTP/1.1 200 OK\r\nContent-Length: 0\r\nServer: foo\r\n\r\n'))
-assert(response_parser.parse() === 51)
+const res_buf = encoder.encode('HTTP/1.1 200 OK\r\n\r\n')
+const response_parser = new ResponseParser(res_buf)
+assert(response_parser.parse() === res_buf.length)
 
 const parse_request = request_parser.parse
-assert(parse_request() === 40)
+assert(parse_request() === req_buf.length)
 const parse_response = response_parser.parse
-assert(parse_response() === 51)
+assert(parse_response() === res_buf.length)
 
 while (1) {
   for (let i = 0; i < iter; i++) {
     bench.start('request_parser')
     for (let j = 0; j < runs; j++) {
-      parse_request()
+      assert(parse_request() === req_buf.length)
     }
     bench.end(runs)
   }
@@ -111,7 +113,7 @@ while (1) {
   for (let i = 0; i < iter; i++) {
     bench.start('response_parser')
     for (let j = 0; j < runs; j++) {
-      parse_response()
+      assert(parse_response() === res_buf.length)
     }
     bench.end(runs)
   }

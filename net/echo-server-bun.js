@@ -1,44 +1,41 @@
 import { Stats } from '../lib/bench.mjs'
-import { listen } from "bun";
+import { listen } from 'bun'
 
 const handlers = {
   data(socket, buffer) {
-    const len = buffer.byteLength;
-    stats.recv += len;
+    const len = buffer.byteLength
+    stats.recv += len
     if (!socket.write(buffer)) {
-      socket.data = { pending: buffer };
-      return;
+      socket.data = { pending: buffer }
+      return
     }
-    stats.send += len;
+    stats.send += len
   },
   drain(socket) {
-    const pending = socket.data?.pending;
-    if (!pending) return;
+    const pending = socket.data?.pending
+    if (!pending) return
     if (socket.write(pending)) {
-      stats.send += pending.byteLength;
-      socket.data = undefined;
-      return;
+      stats.send += pending.byteLength
+      socket.data = undefined
+      return
     }
   },
-  open (socket) {
+  open () {
     stats.conn++
   },
-  close (socket) {
+  close () {
     stats.conn--
   }
-};
+}
 
 const stats = new Stats()
+setInterval(() => stats.log(), 1000)
 
-setInterval(() => {
-  stats.log()
-}, 1000);
-
-const server = listen({
+listen({
   socket: handlers,
-  hostname: "localhost",
+  hostname: '127.0.0.1',
   port: 3000,
   data: {
     isServer: true,
   },
-});
+})

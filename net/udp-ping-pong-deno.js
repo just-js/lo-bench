@@ -1,4 +1,4 @@
-import { to_size_string, mem } from '../crypto/lib/bench.mjs'
+import { to_size_string, mem, cputime } from '../lib/bench.mjs'
 
 const { AD, AG, AY, AM, AC } = colors
 
@@ -35,8 +35,8 @@ async function start_pong () {
 }
 
 const encoder = new TextEncoder()
-const size = Math.min(parseInt(Deno.args[0] || '1', 10), 65507)
-const runs = parseInt(Deno.args[1] || '5', 10)
+const size = Math.min(parseInt(args[0] || '1', 10), 65507)
+const runs = parseInt(args[1] || '20', 10)
 
 start_ping().catch(err => {
   if (err.message !== 'operation canceled') console.error(err.stack)
@@ -47,16 +47,10 @@ start_pong().catch(err => {
 
 await ping.send(encoder.encode('1'.repeat(size)), pong.addr)
 
-const last = [0, 0]
-const cpuUsage = () => ({ user: 0, system: 0 })
 let done = 0
 
 const timer = setInterval(() => {
-  const { user, system } = cpuUsage()
-  const usr = Math.floor(((user - last[0]) / 1e6) * 100)
-  const sys = Math.floor(((system - last[1]) / 1e6) * 100)
-  last[0] = user
-  last[1] = system
+  const [ usr, sys ] = cputime()
   const total = stats.ping.recv + stats.ping.send + stats.pong.recv + stats.pong.send
   console.log(`${AM}ping${AD} ${AY}send${AD} ${stats.ping.send} ${AY}recv${AD} ${stats.ping.recv} ${AG}bytes${AD} ${AY}send${AD} ${to_size_string(stats.ping.bytes.send)} ${AY}recv${AD} ${to_size_string(stats.ping.bytes.recv)} ${AM}pong${AD} ${AY}send${AD} ${stats.pong.send} ${AY}recv${AD} ${stats.pong.recv} ${AG}bytes${AD} ${AY}send${AD} ${to_size_string(stats.pong.bytes.send)} ${AY}recv${AD} ${to_size_string(stats.pong.bytes.recv)} ${AC}total${AD} ${total} ${AG}rss${AD} ${mem()} ${AC}cpu${AD} ${AY}usr${AD} ${usr.toString().padStart(3, ' ')} ${AY}sys${AD}  ${sys.toString().padStart(3, ' ')} ${AY}tot${AD} ${(usr + sys).toString().padStart(3, ' ')}`)
   stats.ping.send = stats.ping.recv = stats.pong.send = stats.pong.recv = 0

@@ -16,7 +16,7 @@ if (core.os === 'linux') {
   prefix = 'nice -n 20 taskset --cpu-list 6'.split(' ')
 }
 
-const deno_args = ['run', '-A', '--unstable']
+const deno_args = ['-A', '--unstable-net']
 
 if (lo.args.includes('--quiet')) {
   const fd = open('./udp.log', write_flags, write_mode)
@@ -26,6 +26,7 @@ if (lo.args.includes('--quiet')) {
 
 const runs = parseInt(lo.args[2] || '5', 10)
 const sizes = [ 1, 8, 64, 256, 1024, 4096, 16384, 60000, 65507 ]
+//const sizes = [ 4096, 16384, 60000, 65507 ]
 const args = [1, runs]
 
 for (const size of sizes) {
@@ -33,5 +34,7 @@ for (const size of sizes) {
   spawn('deno', [...deno_args, 'udp-ping-pong-deno.js', ...args])
   spawn('deno', [...deno_args, 'udp-ping-pong-node.mjs', ...args])
   spawn('node', ['udp-ping-pong-node.mjs', ...args])
+  spawn('bun', ['udp-ping-pong-node.mjs', ...args])
+  spawn('bun', ['udp-ping-pong-bun.js', ...args])
   spawn('lo', ['udp-ping-pong.js', ...args])
 }

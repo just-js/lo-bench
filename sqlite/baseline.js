@@ -1,6 +1,6 @@
-import { Bench } from 'lib/bench.js'
-
-const { sqlite } = lo.load('sqlite')
+import { Bench } from '../fs/lib/bench.mjs'
+import { sqlite } from './lib/sqlite-ffi.js'
+//const { sqlite } = lo.load('sqlite')
 
 const {
   step, column_int, reset, finalize, open2, exec, close2, prepare2
@@ -17,6 +17,10 @@ const OPEN_NOMUTEX = 0x00008000
 const u32 = new Uint32Array(2)
 assert(open2(':memory:', u32, OPEN_CREATE | OPEN_READWRITE | OPEN_NOMUTEX, 0) === OK)
 const db = u32[0] + ((2 ** 32) * u32[1])
+
+assert(exec(db, 'PRAGMA auto_vacuum = none', 0, 0, u32) === OK)
+assert(exec(db, 'PRAGMA temp_store = memory', 0, 0, u32) === OK)
+assert(exec(db, 'PRAGMA locking_mode = exclusive', 0, 0, u32) === OK)
 assert(exec(db, 'pragma user_version = 100', 0, 0, u32) === OK)
 const sql = 'pragma user_version'
 assert(prepare2(db, sql, utf8Length(sql), u32, 0) === OK)
@@ -41,7 +45,7 @@ const bench = new Bench()
 for (let i = 0; i < iter; i++) {
   bench.start('pragma user_version')
   for (let j = 0; j < runs; j++) {
-    get_version(stmt)
+    assert(get_version(stmt) === 100)
   }
   bench.end(runs)
 }

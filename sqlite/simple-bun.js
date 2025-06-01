@@ -1,5 +1,11 @@
+// these options make this a little faster
+// BUN_JSC_useDollarVM=1
+//$vm.useJIT(false)
+//$vm.useFTLJIT(true)
+//$vm.useDFGJIT(true)
+
 import { Database } from 'bun:sqlite'
-import { Bench } from '../crypto/lib/bench.mjs'
+import { Bench } from '../fs/lib/bench.mjs'
 
 const db = Database.open(':memory:')
 db.exec('drop table if exists foo')
@@ -9,7 +15,7 @@ const stmt = db.prepare('select num from foo limit 1')
 
 assert(stmt.get().num === 1)
 
-const runs = 5000000
+const runs = 10000000
 const iter = 10
 const bench = new Bench()
 

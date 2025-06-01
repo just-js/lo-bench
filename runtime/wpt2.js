@@ -5,7 +5,7 @@ const tests = require('./urltestdata.json')
 for (const test of tests) {
   if (test.constructor.name === 'String') continue
   const { input, href, base, failure } = test
-  console.log(input)
+//  console.log(input)
   try {
     if (base) {
       const parsed = new URL(input, base)

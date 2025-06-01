@@ -5,7 +5,7 @@ import { Timer } from 'lib/timer.js'
 import { RequestParser } from 'lib/pico.js'
 import * as html from 'lib/html.js'
 
-const { assert, utf8Length, core, getenv, ptr, uft8_encode_into } = lo
+const { assert, utf8Length, core, getenv, ptr, utf8_encode_into_ptr } = lo
 const { fcntl, O_NONBLOCK, F_SETFL, read_file } = core
 const { 
   socket, bind, listen, accept, close, setsockopt, recv, send2
@@ -97,20 +97,20 @@ function start_server (addr, port) {
 const handlers = new Map()
 handlers.set('/data', fd => {
   const data_text = data_fn.call(data)
-  send2(fd, send_buf.ptr, uft8_encode_into(
+  send2(fd, send_buf.ptr, utf8_encode_into_ptr(
     `${status_line()}${htmlx}Content-Length: ${utf8Length(data_text)}\r\n\r\n${data_text}`, 
-    send_buf), 0)
+    send_buf.ptr), 0)
 })
 handlers.set('/hello', fd => {
   const text = index.call({ foo: 'Andrew' })
-  send2(fd, send_buf.ptr, uft8_encode_into(
+  send2(fd, send_buf.ptr, utf8_encode_into_ptr(
     `${status_line()}${plaintext}Content-Length: ${utf8Length(text)}\r\n\r\n${text}`, 
-    send_buf), 0)
+    send_buf.ptr), 0)
 })
 handlers.set('notfound', fd => {
-  send2(fd, send_buf.ptr, uft8_encode_into(
+  send2(fd, send_buf.ptr, utf8_encode_into_ptr(
     `${status_line(404, 'Not Found')}${plaintext}Content-Length: 0\r\n\r\n`, 
-    send_buf), 0)
+    send_buf.ptr), 0)
 })
 const decoder = new TextDecoder()
 const encoder = new TextEncoder()

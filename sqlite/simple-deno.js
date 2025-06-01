@@ -1,5 +1,5 @@
-import { Bench } from '../crypto/lib/bench.mjs'
-import { Database } from "https://deno.land/x/sqlite3@0.10.0/mod.ts"
+import { Bench } from '../fs/lib/bench.mjs'
+import { Database } from "jsr:@db/sqlite@0.12"
 
 const db = new Database(':memory:', { unsafeConcurrency: true })
 db.exec('drop table if exists foo')
@@ -8,7 +8,7 @@ db.exec('insert into foo (num) values (1)')
 const stmt = db.prepare('select num from foo limit 1')
 if(stmt.get().num !== 1) throw new Error('Unexpected Result')
 
-const runs = 5000000
+const runs = 10000000
 const iter = 10
 const bench = new Bench()
 

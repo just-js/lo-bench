@@ -32,15 +32,15 @@ function pc_field (val, size = 12) {
   return `${((Math.floor(val * 100) / 100).toString().padStart(size, ' '))}`
 }
 
-function head2head (name, a, b) {
+function head2head (name, a, b, name2 = name) {
   console.log('')
-  console.log(`${AC}${a} v ${b} (${name})${AD}`)
+  console.log(`${AC}${a} (${name}) v ${b} (${name2})${AD}`)
   console.log('')
   for (let i = 0; i < sizes.length; i++) {
     const size = sizes[i]
     console.log(`${header(size)} ${header('ops/sec/core')} ${header('thru/core')} ${header('ratio', 6)}`)
     const a_max = get_max_rate(a, name)[i]
-    const b_max = get_max_rate(b, name)[i]
+    const b_max = get_max_rate(b, name2)[i]
     const max = Math.max(a_max, b_max)
     const a_max_pc = (a_max / max)
     const b_max_pc = (b_max / max)
@@ -84,18 +84,19 @@ function get_thru_scores () {
     .sort((a, b) => b.thru - a.thru)
 }
 
-function throughput () {
+function throughput (size) {
   console.log('')
   console.log(`${AC}Base64 Decoding Throughput Rankings${AD}`)
   console.log('')
-  console.log(`${header('runtime', 8)} ${header('name')} ${header('size', 8)} ${header('thru', 13)} ${header('ratio', 8)}`)
+  console.log(`${header('runtime', 8)} ${header('name', 20)} ${header('size', 8)} ${header('thru', 13)} ${header('ratio', 8)}`)
   console.log('')
-  const thru = get_thru_scores()
+  let thru = get_thru_scores()
+  if (size) thru = thru.filter(v => v.size === size)
   const max_thru = thru[0].thru
   for (const score of thru) {
     const { runtime, name, size, thru } = score
     const pc_max = (thru / max_thru)
-    console.log(`${AY}${field_left(runtime, 8)}${AD} ${AM}${field_left(name)}${AD} ${field_left(size, 8)} ${to_size_string(thru)} ${field((Math.ceil(pc_max * 10000) / 100).toFixed(2), 6)} % ${icon[runtime].repeat(Math.ceil(pc_max * 50))}`)
+    console.log(`${AY}${field_left(runtime, 8)}${AD} ${AM}${field_left(name, 20)}${AD} ${field_left(size, 8)} ${to_size_string(thru)} ${field((Math.ceil(pc_max * 10000) / 100).toFixed(2), 6)} % ${icon[runtime].repeat(Math.ceil(pc_max * 50))}`)
   }
   console.log('')
 }
@@ -103,7 +104,7 @@ function throughput () {
 const { AM, AY, AG, AD, AC } = colors
 const icon = { lo: '🟠', deno:  '🟣', node: '🟢', bun: '🟡' }
 const decoder = new TextDecoder()
-const file_name = args[0] || './results-linux.txt'
+const file_name = args[0] || './results-linux2.txt'
 const results = decoder.decode(readFileSync(file_name))
 const lines = results.split('\n').filter(l => l)
 const rx = /(\w+)\s+([\w\.]+)\s+(\d+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)\s+[\w\/]+\s+([\d\.]+)/
@@ -111,14 +112,20 @@ const scores = get_scores(lines)
 const sizes = scores.map(score => score.size).filter(uniq)
 head2head('Buffer.from', 'node', 'deno')
 head2head('Buffer.write', 'node', 'deno')
-head2head('Buffer.write', 'node', 'lo')
+head2head('Buffer.write', 'node', 'lo', 'base64_decode')
 // bun does not run on raspberry pi 3B+ so we don't report on it for the pi results
 if (args[0].slice(-7) !== '-pi.txt') {
   head2head('Buffer.from', 'node', 'bun')
   head2head('Buffer.from', 'bun', 'deno')
   head2head('Buffer.write', 'node', 'bun')
   head2head('Buffer.write', 'bun', 'deno')
-  head2head('Buffer.write', 'bun', 'lo')
+  head2head('Buffer.write', 'bun', 'lo', 'base64_decode')
 }
-head2head('Buffer.write', 'deno', 'lo')
-throughput()
+head2head('Buffer.write', 'deno', 'lo', 'base64_decode')
+head2head('base64_decode', 'lo', 'lo', 'base64_decode_str')
+
+//head2head('Buffer.from', 'node', 'lo', 'buffer_from')
+//head2head('Buffer.from', 'deno', 'lo', 'buffer_from')
+//head2head('Buffer.from', 'bun', 'lo', 'buffer_from')
+
+throughput(parseInt(args[1] || '0', 10))

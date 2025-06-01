@@ -33,7 +33,7 @@ function close_socket (fd) {
   const socket = sockets.get(fd)
   if (fd > 0) {
     loop.remove(fd)
-    if (sockets.has(fd)) sockets.delete(fd)
+    //if (sockets.has(fd)) sockets.delete(fd)
     close(fd)
     stats.conn--
   }
@@ -60,6 +60,7 @@ function on_socket_event (fd) {
 }
 
 function create_socket (fd) {
+  if (sockets.has(fd)) return sockets.get(fd)
   return {
     parser: new RequestParser(new Uint8Array(BUFSIZE)), fd
   }

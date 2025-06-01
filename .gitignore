@@ -5,3 +5,4 @@ node_modules
 *.db-journal
 *.db-shm
 *.sqlite
+tmp

@@ -16,16 +16,14 @@ if (core.os === 'linux') {
   prefix = 'nice -n 20 taskset --cpu-list 0'.split(' ')
 }
 
-const LO_HOME = getenv('LO_HOME')
-
 if (core.os === 'linux') {
   const CC = getenv('CC') || 'gcc'
-//  if (!isFile('./hash-c')) spawn(CC, ['-O3', '-mtune=native', '-march=native', '-msse4', '-mavx2', '-o', 'hash-c', 'hash-c.c', '-lcrypto'])
-  if (!isFile('./hash-c')) spawn(CC, ['-O3', '-mtune=native', '-march=native', '-msse4', '-mavx2', '-o', 'hash-c', 'hash-c.c', `${LO_HOME}/lib/libssl/deps/openssl/libcrypto.a`])
-  if (!isFile('./hash-c-boring')) spawn(CC, ['-O3', '-mtune=native', '-march=native', '-msse4', '-mavx2', '-o', 'hash-c-boring', 'hash-c.c', `${LO_HOME}/lib/boringssl/deps/boringssl/build/crypto/libcrypto.a`])
+  if (!isFile('./hash-c')) spawn(CC, ['-O3', '-mtune=native', '-march=native', '-msse4', '-mavx2', '-o', 'hash-c', 'hash-c.c', '-lcrypto'])
+  if (!isFile('./hash-c-boring')) spawn(CC, ['-O3', '-mtune=native', '-march=native', '-msse4', '-mavx2', '-o', 'hash-c-boring', 'hash-c.c', 'lib/boringssl/deps/boringssl/build/crypto/libcrypto.a'])
 } else if (core.os === 'mac') {
   const CC = getenv('CC') || 'clang'
   if (!isFile('./hash-c')) spawn(CC, ['-I/opt/homebrew/opt/openssl@3/include', 'L/opt/homebrew/opt/openssl@3/lib', '-O3', '-mtune=native', '-march=native', '-msse4', '-mavx2', '-o', 'hash-c', 'hash-c.c', '-lcrypto'])
+  if (!isFile('./hash-c-boring')) spawn(CC, ['-O3', '-mtune=native', '-march=native', '-msse4', '-mavx2', '-o', 'hash-c-boring', 'hash-c.c', 'lib/boringssl/deps/boringssl/build/crypto/libcrypto.a'])
 }
 
 const iter = parseInt(lo.args[2] || '1', 10)
@@ -49,14 +47,17 @@ spawn('./hash-c-boring', [...args])
 console.log(`${AM}lo (openssl)${AD}`)
 spawn('lo', ['hash-lo.js', ...args])
 
-//console.log(`${AM}lo (openssl)${AD}`)
-//spawn('lo', ['hash-lo.js', ...args], [['LOSSL', 'openssl']])
+console.log(`${AM}lo (mbedtls)${AD}`)
+spawn('lo', ['hash-lo-mbedtls.js', ...args])
+
+console.log(`${AM}lo (boringssl)${AD}`)
+spawn('lo', ['hash-lo.js', ...args], [['LOSSL', 'boringssl']])
 
 console.log(`${AM}lo-lo (openssl)${AD}`)
 spawn('lo', ['hash-lo-lo.js', ...args])
 
-//console.log(`${AM}lo-lo (openssl)${AD}`)
-//spawn('lo', ['hash-lo-lo.js', ...args], [['LOSSL', 'openssl']])
+console.log(`${AM}lo-lo (boringssl)${AD}`)
+spawn('lo', ['hash-lo-lo.js', ...args], [['LOSSL', 'boringssl']])
 
 console.log(`${AM}node 20${AD}`)
 spawn('node', ['hash-node.mjs', ...args])

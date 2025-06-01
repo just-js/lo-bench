@@ -1,5 +1,4 @@
 [
-  "See ../README.md for a description of the format.",
   {
     "input": "http://example\t.\norg",
     "base": "http://example.org/foo/bar",

@@ -1,8 +1,7 @@
 import { Node } from 'lib/udp.js'
 import { Loop } from 'lib/loop.js'
 import { Timer } from 'lib/timer.js'
-import { cputime } from 'lib/proc.js'
-import { to_size_string, mem } from '../crypto/lib/bench.mjs'
+import { to_size_string, mem, cputime } from '../lib/bench.mjs'
 
 // https://gist.github.com/hostilefork/f7cae3dc33e7416f2dd25a402857b6c6
 /*
@@ -66,7 +65,7 @@ const encoder = new TextEncoder()
 let done = 0
 
 const timer = new Timer(loop, 1000, () => {
-  const [ usr, , sys ] = cputime()
+  const [ usr, sys ] = cputime()
   const total = stats.ping.recv + stats.ping.send + stats.pong.recv + stats.pong.send
   console.log(`${AM}ping${AD} ${AY}send${AD} ${stats.ping.send} ${AY}recv${AD} ${stats.ping.recv} ${AG}bytes${AD} ${AY}send${AD} ${to_size_string(stats.ping.bytes.send)} ${AY}recv${AD} ${to_size_string(stats.ping.bytes.recv)} ${AM}pong${AD} ${AY}send${AD} ${stats.pong.send} ${AY}recv${AD} ${stats.pong.recv} ${AG}bytes${AD} ${AY}send${AD} ${to_size_string(stats.pong.bytes.send)} ${AY}recv${AD} ${to_size_string(stats.pong.bytes.recv)} ${AC}total${AD} ${total} ${AG}rss${AD} ${mem()} ${AC}cpu${AD} ${AY}usr${AD} ${usr.toString().padStart(3, ' ')} ${AY}sys${AD}  ${sys.toString().padStart(3, ' ')} ${AY}tot${AD} ${(usr + sys).toString().padStart(3, ' ')}`)
   stats.ping.send = stats.ping.recv = stats.pong.send = stats.pong.recv = 0
@@ -75,7 +74,7 @@ const timer = new Timer(loop, 1000, () => {
 })
 
 const size = Math.min(parseInt(lo.args[2] || '1', 10), Node.MAX_UDP_SIZE)
-const runs = parseInt(lo.args[3] || '5', 10)
+const runs = parseInt(lo.args[3] || '20', 10)
 ping.send(encoder.encode('1'.repeat(size)))
 stats.ping.send++
 

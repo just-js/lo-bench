@@ -12,6 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.33.0"
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.49.0"
   }
 }

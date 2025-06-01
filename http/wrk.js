@@ -78,7 +78,6 @@ const stats = new Stats()
 const timer = new Timer(loop, 1000, on_timer)
 const nclient = parseInt(lo.args[2] || '64', 10)
 for (let i = 0; i < nclient; i++) start_client()
-// 7 ms from cold start
 console.log(lo.hrtime() - lo.start)
 while (loop.poll() > 0) {}
 timer.close()

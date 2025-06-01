@@ -1,3 +1,7 @@
+import { Stats } from './lib/bench.mjs'
+
+const stats = new Stats()
+
 Bun.serve({
   fetch () {
     stats.rps++
@@ -7,9 +11,4 @@ Bun.serve({
   reusePort: true
 })
 
-const stats = { rps: 0 }
-
-setInterval(() => {
-  console.log(`rps ${stats.rps}`)
-  stats.rps = 0
-}, 1000)
+setInterval(() => stats.log(), 1000)

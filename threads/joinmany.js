@@ -1,4 +1,4 @@
-import { Bench } from 'lib/bench.mjs'
+import { Bench, mem } from 'lib/bench.mjs'
 import { Worker } from 'lib/worker.js'
 
 const { ptr } = lo
@@ -14,7 +14,7 @@ function create_worker () {
 }
 
 const thread_buffer = ptr(new Uint8Array(new SharedArrayBuffer(8)))
-const threads = 1
+const threads = 100
 const workers = []
 for (let i = 0; i < threads; i++) workers.push(create_worker())
 const bench = new Bench()
@@ -41,4 +41,16 @@ while (1) {
   bench.end(runs)
 
   if (running === 0) break
+}
+
+workers.forEach(worker => {
+  worker.free()
+})
+
+if (globalThis.gc) {
+  for (let i = 0; i < 10; i++) {
+    gc()
+    console.log(mem())
+    lo.core.sleep(1)
+  }
 }

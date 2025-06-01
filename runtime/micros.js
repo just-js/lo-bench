@@ -9,8 +9,7 @@ let runs = 0
 const noop = () => {}
 
 
-console.log(Object.getOwnPropertyNames(lo))
-/*
+//console.log(Object.getOwnPropertyNames(lo))
 const { hrtime } = lo
 
 runs = 50000000
@@ -48,12 +47,7 @@ for (let i = 0; i < iter; i++) {
   bench.end(runs)
 }
 
-*/
 
-// print
-
-// this is broken
-/*
 const { runMicroTasks } = lo
 
 runs = 6000000
@@ -202,8 +196,6 @@ for (let i = 0; i < iter; i++) {
 }
 
 }
-
-*/
 
 
 /*

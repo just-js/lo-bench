@@ -1,15 +1,15 @@
 import { net } from 'lib/net.js'
 import { Loop } from 'lib/loop.js'
 import { Timer } from 'lib/timer.js'
-import { Stats } from '../lib/bench.mjs'
+import { Stats } from 'lib/bench.js'
 
-const { assert, core, getenv } = lo
+const { assert, core, getenv, ptr } = lo
 const { fcntl, O_NONBLOCK, F_SETFL } = core
 const { 
-  socket, bind, listen, accept, close, setsockopt, recv, send
+  socket, bind, listen, accept, close, setsockopt, recv2, send2
 } = net
 const {
-  SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, SOL_SOCKET, SOCKADDR_LEN
+  SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, SOL_SOCKET, SOCKADDR_LEN, TCP_NODELAY, IPPROTO_TCP
 } = net
 const { sockaddr_in } = net.types
 const { Blocked } = Loop
@@ -28,14 +28,13 @@ function close_socket (fd) {
 }
 
 function on_socket_event (fd) {
-  const bytes = recv(fd, recv_buf, BUFSIZE, 0)
+  const bytes = recv2(fd, recv_buf.ptr, BUFSIZE, 0)
   if (bytes > 0) {
     stats.recv += bytes 
-    const written = send(fd, recv_buf, bytes, 0)
-    if (written < bytes) {
-      console.log(written)
-    }
+    const written = send2(fd, recv_buf.ptr, bytes, 0)
+    if (written !== bytes) throw new Error('partial write')
     stats.send += bytes
+    stats.rps++
     return
   }
   if (bytes < 0 && lo.errno === Blocked) return
@@ -46,6 +45,7 @@ function on_socket_connect (sfd) {
   // we could use accept4 on linux and set non blocking here but macos does not have it
   const fd = accept(sfd, 0, 0)
   if (fd > 0) {
+//    assert(!setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, net.on, 4))
     assert(fcntl(fd, F_SETFL, O_NONBLOCK) === 0)
     assert(loop.add(fd, on_socket_event, Loop.Readable, close_socket) === 0)
     stats.conn++
@@ -74,11 +74,10 @@ function start_server (addr, port) {
 // or just use same buffer for all sockets and copy when needed
 // we could just use pointers and offsets
 // it would still be jumping around a lot
-const BUFSIZE = 256 * 1024
+const BUFSIZE = parseInt(getenv('BUFSIZE') || 256 * 1024, 10);
 const loop = new Loop()
-const recv_buf = new Uint8Array(BUFSIZE)
+const recv_buf = ptr(new Uint8Array(BUFSIZE))
 const stats = new Stats()
-//const stats = { send: 0, recv: 0, conn: 0 }
 const timer = new Timer(loop, 1000, on_timer)
 const address = getenv('ADDRESS') || '127.0.0.1'
 const port = parseInt(getenv('PORT') || 3000, 10)

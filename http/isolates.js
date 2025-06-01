@@ -23,8 +23,11 @@ let iter = 20
 const runs = 600
 
 const context = new Uint8Array(isolate_context_size())
-isolate_context_create(argc, argv, runtime, utf8Length(runtime), script, 
-  utf8Length(script), 0, 0, 0, lo.hrtime(), 'lo', script_path, cleanup, 
+//isolate_context_create(argc, argv, runtime, utf8Length(runtime), script, 
+//  utf8Length(script), 0, 0, 0, lo.hrtime(), 'lo', script_path, cleanup, 
+//  on_exit, snapshot, context)
+isolate_context_create(argc, argv, script, utf8Length(script), 0, 
+  0, 0, 0, 0, lo.hrtime(), 'lo', script_path, cleanup, 
   on_exit, snapshot, context)
 
 for (let i = 0; i < iter; i++) {

@@ -67,8 +67,8 @@ class Process {
 }
 
 const loop = new Loop()
-//const count = sysconf(_SC_NPROCESSORS_ONLN)
-const count = 1
+const count = sysconf(_SC_NPROCESSORS_ONLN)
+//const count = 4
 const args = lo.args.slice(2)
 if (!args.length) throw new Error('nothing to run')
 
@@ -98,7 +98,6 @@ const timer = new Timer(loop, 1000, () => {
 })
 
 main().catch(err => console.error(err.stack))
-console.log('ah')
 while (loop.poll() > 0) {
   lo.runMicroTasks()
 }

@@ -1,7 +1,5 @@
 import { Database } from 'lib/sqlite.js'
-import { Bench } from '../crypto/lib/bench.mjs'
-
-const { assert } = lo
+import { Bench } from '../fs/lib/bench.mjs'
 
 const db = new Database().open(':memory:')
 db.exec('drop table if exists foo')
@@ -11,7 +9,7 @@ const stmt = db.prepare('select num from foo limit 1').compile('foo_num', true)
 
 assert(stmt.get().num === 1)
 
-const runs = 5000000
+const runs = 10000000
 const iter = 10
 const bench = new Bench()
 

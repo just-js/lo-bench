@@ -41,8 +41,8 @@ u8 = await sha256_hash_buffer(hello)
 u8.forEach((v, i) => assert(v === expectedsha256[i]))
 sha256('hello').forEach((v, i) => assert(v === expectedsha256[i]))
 
-const iter = parseInt(args[0] || '3', 10)
-const runs = parseInt(args[1] || '1000000', 10)
+const iter = parseInt(args[0] || '5', 10)
+const runs = parseInt(args[1] || '3000000', 10)
 let total = parseInt(args[2] || '1', 10)
 const bench = new Bench()
 

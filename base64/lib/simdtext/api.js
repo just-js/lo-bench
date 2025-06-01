@@ -23,6 +23,24 @@ size_t base64_decode(char* dst, const size_t dstlen,
     return -1;
   }
 }
+
+extern "C" {
+size_t base64_decode_fast(const char* src, const size_t srclen, 
+                          char* dst, const size_t dstlen) {
+  size_t written_len = dstlen;
+  auto result = simdutf::base64_to_binary_safe(
+    src,
+    srclen,
+    dst,
+    written_len,
+    simdutf::base64_url);
+  if (result.error == simdutf::error_code::SUCCESS) {
+    return written_len;
+  } else {
+    return -1;
+  }
+}
+}
 `
 const name = 'simdtext'
 const includes = ['simdutf.h']

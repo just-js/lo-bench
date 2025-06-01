@@ -20,7 +20,9 @@ while (1) {
   const size = sz32[0]
   const src = utf8_decode(payload.ptr, size)
   try {
-    eval(src)
+    const v = eval(src)
+    console.log(v)
+    if(v === 100000) break
   } catch (err) {
     console.log(err.stack)
   }
@@ -37,10 +39,10 @@ assert(worker.start())
 
 let i = 0
 while (1) {
-  szview.setUint32(0, utf8_encode_into_at_offset(`console.error('request ${i++}')`, buf, 4), true)
+  szview.setUint32(0, utf8_encode_into_at_offset(`${i++}`, buf, 4), true)
   // becasue we write the max value each time. write should block if we overflow
   // until the other side reads the current value
-  write(fd, sigbuf, 8)
+  assert(write(fd, sigbuf, 8) === 8)
   if (!worker.poll()) break
 }
 

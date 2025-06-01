@@ -1,11 +1,12 @@
 import { net } from 'lib/net.js'
 import { Loop } from 'lib/loop.js'
 import { Timer } from 'lib/timer.js'
+import { Stats } from '../lib/bench.mjs'
 
-const { assert, core, getenv } = lo
+const { assert, core, getenv, ptr } = lo
 const { fcntl, O_NONBLOCK, F_SETFL } = core
 const { 
-  socket, bind, listen, accept, close, setsockopt, recv, send
+  socket, bind, listen, accept, close, setsockopt, recv2, send2
 } = net
 const {
   SOCK_STREAM, AF_INET, SOMAXCONN, SO_REUSEPORT, SOL_SOCKET, SOCKADDR_LEN
@@ -13,20 +14,8 @@ const {
 const { sockaddr_in } = net.types
 const { Blocked } = Loop
 
-function to_size_string (bytes) {
-  if (bytes < 1000) {
-    return `${bytes} Bps`
-  } else if (bytes < 1000 * 1000) {
-    return `${Math.floor((bytes / 1000) * 100) / 100} KBps`
-  } else if (bytes < 1000 * 1000 * 1000) {
-    return `${Math.floor((bytes / (1000 * 1000)) * 100) / 100} MBps`
-  }
-  return `${Math.floor((bytes / (1000 * 1000 * 1000)) * 100) / 100} GBps`
-}
-
 function on_timer () {
-  console.log(`send ${to_size_string(stats.send)} recv ${to_size_string(stats.recv)} conn ${stats.conn}`)
-  stats.recv = stats.send = 0
+  stats.log()
 }
 
 function close_socket (fd) {
@@ -43,19 +32,14 @@ function on_socket_drain (fd) {
   console.log('on_socket_drain')
   const towrite = pending.get(fd)
   if (towrite) {
-    const written = send(fd, towrite, towrite.length, 0)
+    const written = send2(fd, towrite.ptr, towrite.length, 0)
     console.log(`pending write ${written}`)
     pending.delete(fd)
   }
   assert(!eventLoop.modify(fd, on_socket_event, Loop.Readable))
 }
 
-function write_buffer (fd, u8, bytes) {
-  const written = send(fd, u8, bytes, 0)
-  if (written === bytes) {
-    stats.send += written
-    return
-  }
+function handle_backpressure (fd, u8, bytes, written) {
   if (written === -1) {
     if (lo.errno === Blocked) return
     console.log(`write_buffer ${lo.errno}`)
@@ -69,13 +53,22 @@ function write_buffer (fd, u8, bytes) {
   assert(loop.modify(fd, on_socket_drain, Loop.Writable | Loop.EdgeTriggered) === 0)
 }
 
+function write_buffer (fd, u8, bytes) {
+  const written = send2(fd, u8.ptr, bytes, 0)
+  if (written === bytes) {
+    stats.send += written
+    return
+  }
+  handle_backpressure(fd, u8, bytes, written)
+}
+
 function on_socket_event (fd) {
   if (!sockets.has(fd)) {
     close_socket(fd)
     return
   }
   const { recv_buf } = sockets.get(fd)
-  const bytes = recv(fd, recv_buf, BUFSIZE, 0)
+  const bytes = recv2(fd, recv_buf.ptr, BUFSIZE, 0)
   if (bytes > 0) {
     stats.recv += bytes 
     write_buffer(fd, recv_buf, bytes)
@@ -86,7 +79,7 @@ function on_socket_event (fd) {
 }
 
 function create_socket (fd) {
-  return { fd, recv_buf: new Uint8Array(BUFSIZE) }
+  return { fd, recv_buf: ptr(new Uint8Array(BUFSIZE)) }
 }
 
 function on_socket_connect (sfd) {
@@ -121,8 +114,8 @@ function start_server (addr, port) {
 const sockets = new Map()
 const BUFSIZE = 256 * 1024
 const loop = new Loop()
-const stats = { send: 0, recv: 0, conn: 0 }
-const timer = new Timer(loop, 1000, on_timer)
+const stats = new Stats()
+//const timer = new Timer(loop, 1000, on_timer)
 const address = getenv('ADDRESS') || '127.0.0.1'
 const port = parseInt(getenv('PORT') || 3000, 10)
 const fd = start_server(address, port)

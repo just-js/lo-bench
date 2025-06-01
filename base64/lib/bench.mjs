@@ -28,7 +28,7 @@ class Stats {
 
   log () {
     const { send, recv, conn, rps } = this
-    const [ usr, , sys ] = cputime()
+    const [ usr, sys ] = cputime()
     console.log(`${AC}send${AD} ${to_size_string(send)} ${AC}recv${AD} ${to_size_string(recv)} ${AC}rps${AD} ${rps} ${AC}rss${AD} ${mem()} ${AC}con${AD} ${conn} ${AY}usr${AD} ${usr.toString().padStart(3, ' ')} ${AY}sys${AD}  ${sys.toString().padStart(3, ' ')} ${AY}tot${AD} ${(usr + sys).toString().padStart(3, ' ')}`)
     this.send = this.recv = this.rps = 0
   }
@@ -334,6 +334,7 @@ const measure = {
   log: () => {
     const { rss, nanos, usr, sys, total, cpu_time } = measure.end()
     console.log(`${AY}time${AD} ${nanos} ns ${AY}cputime${AD} ${cpu_time} ns ${AG}rss${AD} ${rss} KB ${AM}cpu${AD} ${usr} / ${sys} (${total})`)
+    measure.start()
   }
 }
 

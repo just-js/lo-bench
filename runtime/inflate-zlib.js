@@ -1,4 +1,4 @@
-import { Bench } from '../crypto/lib/bench.mjs'
+import { Bench } from '../fs/lib/bench.mjs'
 import { inflate } from 'lib/zlib.js'
 
 const { core } = lo

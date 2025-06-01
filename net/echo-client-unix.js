@@ -1,6 +1,7 @@
 import { net } from 'lib/net.js'
 import { Loop } from 'lib/loop.js'
 import { Timer } from 'lib/timer.js'
+import { Stats } from '../lib/bench.mjs'
 
 const { assert, getenv } = lo
 const { socket, close, send, recv, connect } = net
@@ -8,20 +9,8 @@ const { SOCK_STREAM, AF_UNIX, SOCK_NONBLOCK, EINPROGRESS, SOCKADDR_LEN } = net
 const { sockaddr_un } = net.types
 const { Blocked } = Loop
 
-function to_size_string (bytes) {
-  if (bytes < 1000) {
-    return `${bytes} Bps`
-  } else if (bytes < 1000 * 1000) {
-    return `${Math.floor((bytes / 1000) * 100) / 100} KBps`
-  } else if (bytes < 1000 * 1000 * 1000) {
-    return `${Math.floor((bytes / (1000 * 1000)) * 100) / 100} MBps`
-  }
-  return `${Math.floor((bytes / (1000 * 1000 * 1000)) * 100) / 100} GBps`
-}
-
 function on_timer () {
-  console.log(`send ${to_size_string(stats.send)} recv ${to_size_string(stats.recv)} conn ${stats.conn}`)
-  stats.recv = stats.send = 0
+  stats.log()
 }
 
 function close_socket (fd) {
@@ -61,12 +50,12 @@ function start_client () {
     close_socket) === 0)
 }
 
-const stats = { send: 0, recv: 0, conn: 0 }
+const stats = new Stats()
 const BUFSIZE = 256 * 1024;
 const payload = new Uint8Array(BUFSIZE)
-const path = getenv('LO_PATH') || './server.sock'
+//const path = '\0hello'
+const path = getenv('LO_PATH') || './hello.sock'
 const loop = new Loop()
-
 const timer = new Timer(loop, 1000, on_timer)
 const nclient = parseInt(lo.args[2] || '64', 10)
 for (let i = 0; i < nclient; i++) start_client()

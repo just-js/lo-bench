@@ -47,11 +47,11 @@ http_get('https://codeload.github.com/WireGuard/wireguard-tools/tar.gz/master', 
     close(fd)
     console.log(`response complete: ${body_bytes} of ${chunked ? 'unknown' : content_length}`)
     res.close()
-    const tarball = inflate(readFile(file_name))
-    assert(chdir('tmp') === 0)
-    untar(tarball)
-    assert(chdir('../') === 0)
-    assert(unlink(file_name) === 0)
+//    const tarball = inflate(readFile(file_name))
+//    assert(chdir('tmp') === 0)
+//    untar(tarball)
+//    assert(chdir('../') === 0)
+//    assert(unlink(file_name) === 0)
   }
 })
 

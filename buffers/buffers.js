@@ -1,16 +1,25 @@
-import { Bench } from 'lib/bench.js'
+import { Bench } from 'lib/bench.mjs'
 
 const { assert, core, wrap, wrapMemory, unwrapMemory, ptr } = lo
 
-const { free } = core
+const { munmap, free, calloc, mmap, aligned_alloc, malloc } = core
+const { PROT_WRITE, PROT_READ, MAP_ANONYMOUS, MAP_PRIVATE } = core
 
-const handle = new Uint32Array(2)
-const calloc = wrap(handle, core.calloc, 2)
+const u32 = new Uint32Array(2)
 
 assert(wrapMemory(calloc(1, 1024), 1024, 0).length === 1024)
+assert(wrapMemory(malloc(1024), 1024, 0).length === 1024)
+assert(wrapMemory(aligned_alloc(8, 1024), 1024, 0).length === 1024)
+assert(wrapMemory(mmap(0, 1024, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, u32), 1024, 0).length === 1024)
+
+
+//console.log(mmap(0, 1024, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, u32))
 
 function create_buffer_calloc (size) {
-  return ptr(wrapMemory(calloc(1, size), size, 1))
+//  return ptr(wrapMemory(malloc(size), size, 1))
+  return ptr(wrapMemory(aligned_alloc(8, size), size, 0))
+//  return ptr(wrapMemory(mmap(0, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, u32), size, 0))
+//  return ptr(wrapMemory(calloc(1, size), size, 1))
 }
 
 function create_buffer (size) {
@@ -18,7 +27,7 @@ function create_buffer (size) {
 }
 
 const iter = 5
-const runs = 1000000
+const runs = 3000000
 const bench = new Bench()
 const size = 16384
 
@@ -29,9 +38,9 @@ for (let i = 0; i < iter; i++) {
   for (let j = 0; j < runs; j++) {
     const u8 = create_buffer(size)
     if (u8.length !== size) throw new Error('UhOh')
-//    unwrapMemory(u8.buffer)
+    unwrapMemory(u8.buffer)
   }
-  bench.end(runs)
+  bench.end(runs, size)
 }
 
 for (let i = 0; i < iter; i++) {
@@ -39,10 +48,11 @@ for (let i = 0; i < iter; i++) {
   for (let j = 0; j < runs; j++) {
     const u8 = create_buffer_calloc(size)
     if (u8.length !== size) throw new Error('UhOh')
-//    unwrapMemory(u8.buffer)
-//    free(u8.ptr)
+    unwrapMemory(u8.buffer)
+//    munmap(u8.ptr)
+    free(u8.ptr)
   }
-  bench.end(runs)
+  bench.end(runs, size)
 }
 
 

@@ -13,7 +13,7 @@
 #define MAXEVENTS 64
 #define BUFSIZE 16384
 
-char* response = "HTTP/1.1 200 OK\r\nDate: Sun, 17 Sep 2023 02:45:22 GMT\r\nContent-Type: text/plain;charset=utf-8\r\nContent-Length: 15\r\n\r\nHello from c!!!";
+char* response = "HTTP/1.1 200 OK\r\nDate: Sun, 17 Sep 2023 02:45:22 GMT\r\nContent-Type: text/plain;charset=utf-8\r\nContent-Length: 13\r\n\r\nHello, World!";
 int reslen;
 int server_fd;
 char buf[BUFSIZE];
@@ -38,24 +38,15 @@ void accept_and_add_new() {
 void process_new_data(int fd) {
   ssize_t count = recv(fd, buf, BUFSIZE, 0);
   if (count > 0) {
-    const char* method;
-    const char* path;
-    size_t method_len = 0;
-    size_t path_len = 0;
-    int32_t minor_version = 1;
-    size_t num_headers = 16;
-    struct phr_header headers[16];
-    int nread = phr_parse_request(buf, count, 
-      (const char **)&method, 
-      &method_len, (const char **)&path, 
-      &path_len, &minor_version, headers, 
-      &num_headers, 0);
-    if (nread == count) {
+//    struct request_state state;
+//    state.payload = buf;
+//    int nread = phr_parse_request2(count, &state);
+//    if (nread == count) {
       if(send(fd, response, reslen, 0) != reslen) {
         perror("short_write");
       }
       return;
-    }
+//    }
   }
   if (count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
     return;
@@ -73,7 +64,11 @@ int main () {
     exit(1);
   }
   if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) == -1) {
-    perror("setsockopt");
+    perror("setsockopt SO_REUSEADDR");
+    exit(1);
+  }
+  if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(int)) == -1) {
+    perror("setsockopt SO_REUSEPORT");
     exit(1);
   }
   reslen = strlen(response);

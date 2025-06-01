@@ -2,7 +2,7 @@ import { net } from 'lib/net.js'
 import { Loop } from 'lib/loop.js'
 import { libssl } from 'lib/libssl.js'
 import { ResponseParser, parse_url, pico } from 'lib/pico.js'
-import { Resolver } from 'lib/dns/dns.js'
+import { Resolver } from 'lib/dns.js'
 
 const { assert, ptr } = lo
 const { socket, connect, close, send_string, recv2 } = net
@@ -55,7 +55,7 @@ function create_socket (fd, loop, protocol, path, hostname, address, port) {
     assert(SSL_set_fd(ssl, fd) === 1)
     SSL_set_connect_state(ssl)
     const sock = {
-      parser: new ResponseParser(buf), 
+      parser: new ResponseParser(buf, 32), 
       fd, 
       ssl, 
       state: INSECURE,
@@ -83,7 +83,7 @@ function create_socket (fd, loop, protocol, path, hostname, address, port) {
     return sock
   }
   const sock = {
-    parser: new ResponseParser(buf), 
+    parser: new ResponseParser(buf, 32), 
     fd, 
     protocol,
     path,
@@ -125,7 +125,7 @@ const noop = () => {}
 function handle_response (sock, callback) {
   const { parser, ssl, state, path, hostname, port, response, address, protocol } = sock
   if (ssl && state === INSECURE && sock.handshake()) {
-    sock.write(create_request(path, hostname, port))
+    const written = sock.write(create_request(path, hostname, port))
     return
   }
   const key = `${protocol}:${address}:${port}`
@@ -161,7 +161,6 @@ function handle_response (sock, callback) {
       return
     } else {
       const parsed = parser.parse(bytes + start)
-//      console.log(`parse ${sock.fd} : ${parsed}`)
       if (parsed > 0) {
         const { status, headers, minor_version, num_headers, message } = parser
         if (headers.transfer_encoding && headers.transfer_encoding === 'chunked') {
@@ -177,7 +176,6 @@ function handle_response (sock, callback) {
         response.headers_done = true
         Object.assign(response.headers, headers)
         callback(null, response)
-//        console.log(`callback ${sock.fd}`)
         if (parsed < bytes + start) {
           const remaining = (bytes + start) - parsed
           if (response.chunked) {
@@ -250,8 +248,7 @@ function http_get (url, loop, callback) {
     const fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)
     assert(connect(fd, sockaddr_in(ip, port), SOCKADDR_LEN) > 0 || lo.errno === EINPROGRESS)
     const sock = create_socket(fd, loop, protocol, path, hostname, ip, port)
-    //sockets.set(key, sock)
-//    console.log(`open ${fd}`)
+//    sockets.set(key, sock)
     assert(loop.add(fd, () => {
       if (sock.ssl) {
         if (sock.handshake()) {

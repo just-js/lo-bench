@@ -1,22 +1,8 @@
 FROM debian:bookworm-slim
 RUN apt-get update -y --fix-missing
-RUN apt-get install -y curl make g++ autoconf libtool unzip xz-utils cmake
+RUN apt-get install -y curl make g++ autoconf libtool unzip xz-utils cmake dmidecode
 
 WORKDIR /bench
-
-# node.js
-ARG NODE_VERSION=22.3.0
-RUN curl -L -o nodejs.tar.xz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz
-RUN tar -xvf nodejs.tar.xz
-RUN mv node-v${NODE_VERSION}-linux-x64 /root/.node
-ENV NODE_ENV=production
-RUN rm nodejs.tar.xz
-
-# bun
-RUN /bin/bash -o pipefail -c "$(curl -fsSL https://bun.sh/install)"
-
-# deno
-RUN /bin/bash -o pipefail -c "$(curl -fsSL https://deno.land/install.sh)"
 
 # lo
 ARG LO_VERSION=0.0.17-pre
@@ -29,6 +15,20 @@ RUN gunzip lo-linux-x64.gz
 RUN chmod +x lo-linux-x64
 RUN ./lo-linux-x64 install
 RUN rm lo-linux-x64
+
+# node.js
+ARG NODE_VERSION=22.3.0
+RUN curl -L -o nodejs.tar.xz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz
+RUN tar -xvf nodejs.tar.xz
+RUN mv node-v${NODE_VERSION}-linux-x64 /root/.node
+ENV NODE_ENV=production
+RUN rm nodejs.tar.xz
+
+# deno
+RUN /bin/bash -o pipefail -c "$(curl -fsSL https://deno.land/install.sh)"
+
+# bun
+RUN /bin/bash -o pipefail -c "$(curl -fsSL https://bun.sh/install)"
 
 # fix permissions for root
 RUN chown -R root:root /root/.deno/
